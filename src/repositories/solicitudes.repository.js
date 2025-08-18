@@ -3,7 +3,6 @@ import OrdenServicio from "../models/OrdenServicio.js";
 import Servicio from "../models/Servicio.js";
 
 export class SolicitudesRepository {
-  // Obtener todas las solicitudes con información del servicio
   async findAll() {
     return await OrdenServicio.findAll({
       attributes: [

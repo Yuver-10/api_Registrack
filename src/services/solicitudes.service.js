@@ -1,14 +1,20 @@
 import { SolicitudesRepository } from "../repositories/solicitudes.repository.js";
+import { OrdenServicio, Servicio } from "../models/orden_servico_Servicio.js";
 
 export class SolicitudesService {
   constructor() {
     this.repository = new SolicitudesRepository();
   }
 
-  // Obtener todas las solicitudes
+  // Listar solicitudes con el Servicio asociado
   async listarSolicitudes() {
     try {
-      return await this.repository.findAll();
+      const ordenes = await OrdenServicio.findAll({
+        include: [
+          { model: Servicio, as: "servicio" } // 'as' debe coincidir con la relación definida
+        ]
+      });
+      return ordenes;
     } catch (error) {
       throw new Error("Error al listar solicitudes: " + error.message);
     }
@@ -23,7 +29,7 @@ export class SolicitudesService {
 
       const solicitudes = await this.repository.findBySearch(search);
 
-      if (solicitudes.length === 0) {
+      if (!solicitudes || solicitudes.length === 0) {
         throw new Error("No se encontraron coincidencias.");
       }
 
@@ -37,11 +43,9 @@ export class SolicitudesService {
   async verDetalleSolicitud(id) {
     try {
       const solicitud = await this.repository.findById(id);
-
       if (!solicitud) {
         throw new Error("Solicitud no encontrada.");
       }
-
       return solicitud;
     } catch (error) {
       throw new Error("Error al ver detalle de solicitud: " + error.message);
@@ -52,11 +56,9 @@ export class SolicitudesService {
   async anularSolicitud(id) {
     try {
       const solicitud = await this.repository.updateEstado(id, "Anulado");
-
       if (!solicitud) {
         throw new Error("Solicitud no encontrada.");
       }
-
       return { mensaje: `La solicitud ${id} ha sido anulada correctamente.` };
     } catch (error) {
       throw new Error("Error al anular la solicitud: " + error.message);
@@ -66,7 +68,6 @@ export class SolicitudesService {
   // Crear nueva solicitud
   async crearSolicitud(solicitudData) {
     try {
-      // Validar datos requeridos
       const camposRequeridos = [
         "id_cliente",
         "id_servicio",
@@ -76,7 +77,6 @@ export class SolicitudesService {
         "ciudad",
         "codigo_postal",
         "estado",
-        "numero_expediente",
       ];
 
       for (const campo of camposRequeridos) {
@@ -85,7 +85,6 @@ export class SolicitudesService {
         }
       }
 
-      // Verificar duplicados
       const solicitudExistente = await this.repository.findDuplicate(
         solicitudData.id_cliente,
         solicitudData.id_servicio
@@ -93,11 +92,10 @@ export class SolicitudesService {
 
       if (solicitudExistente) {
         throw new Error(
-          "Ya existe una solicitud para este cliente y servicio. No se permiten solicitudes duplicadas."
+          "Ya existe una solicitud para este cliente y servicio. No se permiten duplicados."
         );
       }
 
-      // Crear la solicitud
       const nuevaSolicitud = await this.repository.create(solicitudData);
 
       return {
@@ -109,54 +107,31 @@ export class SolicitudesService {
     }
   }
 
-  // Editar solicitud de servicio
+  // Editar solicitud
   async editarSolicitud(id, datosActualizados) {
     try {
-      // Validar que la solicitud existe
       const solicitudExistente = await this.repository.findById(id);
       if (!solicitudExistente) {
         throw new Error("Solicitud no encontrada.");
       }
 
-      // Validar campos requeridos para edición
       const camposEditables = [
-        "pais",
-        "ciudad",
-        "codigo_postal",
-        "total_estimado",
-        // Campos editables para "¿Quién solicita el servicio?"
-        "tipodepersona",
-        "tipodedocumento",
-        "numerodedocumento",
-        "nombrecompleto",
-        "correoelectronico",
-        "telefono",
-        "direccion",
-        // Campos editables para información de la empresa
-        "tipodeentidadrazonsocial",
-        "nombredelaempresa",
-        "nit",
-        // Campos editables para documentos de poder
-        "poderdelrepresentanteautorizado",
-        "poderparaelregistrodelamarca",
+        "pais", "ciudad", "codigo_postal", "total_estimado",
+        "tipodepersona", "tipodedocumento", "numerodedocumento",
+        "nombrecompleto", "correoelectronico", "telefono", "direccion",
+        "tipodeentidadrazonsocial", "nombredelaempresa", "nit",
+        "poderdelrepresentanteautorizado", "poderparaelregistrodelamarca"
       ];
 
-      // Verificar que al menos un campo editable esté presente
       const camposPresentes = camposEditables.filter(
-        (campo) =>
-          datosActualizados[campo] !== undefined &&
-          datosActualizados[campo] !== null
+        campo => datosActualizados[campo] !== undefined && datosActualizados[campo] !== null
       );
 
       if (camposPresentes.length === 0) {
         throw new Error("Debe proporcionar al menos un campo para editar.");
       }
 
-      // Editar la solicitud
-      const solicitudEditada = await this.repository.editarSolicitud(
-        id,
-        datosActualizados
-      );
+      const solicitudEditada = await this.repository.editarSolicitud(id, datosActualizados);
 
       if (!solicitudEditada) {
         throw new Error("Error al actualizar la solicitud.");

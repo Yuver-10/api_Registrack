@@ -6,7 +6,7 @@ import {
   getPermisoById,
   updatePermiso,
   deletePermiso
-} from '../controllers/permiso.controller.js';
+} from '../controllers/permisoController.js';
 
 const router = Router();
 

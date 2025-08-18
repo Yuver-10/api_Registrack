@@ -1,13 +1,21 @@
-import { DataTypes } from 'sequelize';
-import sequelize from '../config/db.js';
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db.js";
+import User from "./user.js";
 
-const Role = sequelize.define('Role', {
-  id_rol: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  nombre: { type: DataTypes.STRING, allowNull: false },
-  estado: { type: DataTypes.BOOLEAN, defaultValue: true }
+const Rol = sequelize.define("Rol", {
+  id_rol: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  nombre: {
+    type: DataTypes.STRING(50),
+    allowNull: false
+  }
 }, {
-  tableName: 'roles',
+  tableName: "roles",
   timestamps: false
 });
 
-export default Role;
+
+export default Rol;

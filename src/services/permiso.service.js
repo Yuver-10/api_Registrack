@@ -6,7 +6,8 @@ const permisoService = {
   getAllPermisos: () => permisoRepository.getAllPermisos(),
   getPermisoById: (id) => permisoRepository.getPermisoById(id),
   updatePermiso: (id, permiso) => permisoRepository.updatePermiso(id, permiso),
-  deletePermiso: (id) => permisoRepository.deletePermiso(id)
+  deletePermiso: (id) => permisoRepository.deletePermiso(id),
+  changeStatePermiso: (id, estado) => permisoRepository.changeStatePermiso(id, estado)
 };
 
 export default permisoService;

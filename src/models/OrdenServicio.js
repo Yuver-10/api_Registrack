@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
+import Servicio from "./Servicio.js"; 
 
 const OrdenServicio = sequelize.define(
   "OrdenServicio",
@@ -8,11 +9,6 @@ const OrdenServicio = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
-    },
-    numero_expediente: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
     },
     id_cliente: {
       type: DataTypes.INTEGER,
@@ -107,5 +103,6 @@ const OrdenServicio = sequelize.define(
     timestamps: false,
   }
 );
+
 
 export default OrdenServicio;

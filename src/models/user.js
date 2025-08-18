@@ -1,7 +1,8 @@
-import { DataTypes } from 'sequelize';
-import sequelize from '../config/db.js';
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db.js";
+import Rol from "./Role.js";
 
-const User = sequelize.define('User', {
+const User = sequelize.define("User", {
   id_usuario: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -9,79 +10,42 @@ const User = sequelize.define('User', {
   },
   tipo_documento: {
     type: DataTypes.STRING(10),
-    allowNull: false,
-    validate: {
-      notEmpty: { msg: 'El tipo de documento es obligatorio' }
-    }
+    allowNull: false
   },
   documento: {
     type: DataTypes.BIGINT,
     allowNull: false,
-    unique: { msg: 'El documento ya está registrado' },
-    validate: {
-      isInt: { msg: 'El documento debe ser numérico' },
-      min: { args: [100000], msg: 'El documento debe tener al menos 10 dígitos' },
-      max: { args: [9999999999], msg: 'El documento no puede tener más de 10 dígitos' }
-    }
+    unique: true
   },
   nombre: {
     type: DataTypes.STRING(50),
-    allowNull: false,
-    validate: {
-      notEmpty: { msg: 'El nombre es obligatorio' },
-      is: {
-        args: /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$/i,
-        msg: 'El nombre solo puede contener letras y espacios'
-      }
-    }
+    allowNull: false
   },
   apellido: {
     type: DataTypes.STRING(50),
-    allowNull: false,
-    validate: {
-      notEmpty: { msg: 'El apellido es obligatorio' },
-      is: {
-        args: /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$/i,
-        msg: 'El apellido solo puede contener letras y espacios'
-      }
-    }
+    allowNull: false
   },
   correo: {
     type: DataTypes.STRING(225),
     allowNull: false,
-    unique: { msg: 'El correo ya está registrado' },
-    validate: {
-      notEmpty: { msg: 'El correo es obligatorio' },
-      isEmail: { msg: 'El formato del correo no es válido' }
-    }
+    unique: true
   },
   contrasena: {
     type: DataTypes.STRING(225),
-    allowNull: false,
-    validate: {
-      notEmpty: { msg: 'La contraseña es obligatoria' },
-      len: {
-        args: [8, 255],
-        msg: 'La contraseña debe tener al menos 8 caracteres'
-      },
-      isStrongPassword(value) {
-        const regex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&()_\-+=[\]{};:'"\\|,.<>\/?]).{8,}$/;
-        if (!regex.test(value)) {
-          throw new Error('La contraseña debe contener al menos una mayúscula, un número y un carácter especial');
-        }
-      }
-    }
+    allowNull: false
   },
   id_rol: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    validate: {
-      isInt: { msg: 'El rol debe ser un número entero' }
+    references: {
+      model: Rol,
+      key: "id_rol"
     }
   }
 }, {
-  tableName: 'usuarios',
+  tableName: "usuarios",
   timestamps: false
 });
+
 
 export default User;

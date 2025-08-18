@@ -1,5 +1,4 @@
 import { registerUser, loginUser } from '../services/auth.services.js';
-import bcrypt from 'bcryptjs';
 
 export const register = async (req, res) => {
   try {

@@ -25,10 +25,11 @@ export const deleteRoleValidation = [
 
 export const roleMiddleware = (rolesPermitidos = []) => {
   return (req, res, next) => {
-    if (!req.user || !rolesPermitidos.includes(req.user.role)) {
-      return res.status(403).json({ mensaje: 'No tienes permisos' });
+    if (!req.user || !rolesPermitidos.some(r => r.toLowerCase() === req.user.rol.toLowerCase())) {
+      return res.status(403).json({ mensaje: "No tienes permisos" });
     }
     next();
   };
 };
+
 
