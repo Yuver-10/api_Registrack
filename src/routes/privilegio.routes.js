@@ -7,22 +7,15 @@ import {
   updatePrivilegio,
   deletePrivilegio
 } from '../controllers/privilegio.controller.js';
+import { roleMiddleware } from '../middlewares/role.middleware.js';
 
 const router = Router();
 
-// Crear privilegio
-router.post('/', createPrivilegio);
-
-// Listar todos los privilegios
-router.get('/', getAllPrivilegios);
-
-// Obtener privilegio por ID
-router.get('/:id', getPrivilegioById);
-
-// Actualizar privilegio por ID
-router.put('/:id', updatePrivilegio);
-
-// Eliminar privilegio por ID
-router.delete('/:id', deletePrivilegio);
+// Todas las rutas de privilegios solo para administradores
+router.post('/', roleMiddleware(["administrador"]), createPrivilegio);
+router.get('/', roleMiddleware(["administrador"]), getAllPrivilegios);
+router.get('/:id', roleMiddleware(["administrador"]), getPrivilegioById);
+router.put('/:id', roleMiddleware(["administrador"]), updatePrivilegio);
+router.delete('/:id', roleMiddleware(["administrador"]), deletePrivilegio);
 
 export default router;

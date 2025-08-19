@@ -10,6 +10,11 @@ const OrdenServicio = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
+    numero_expediente: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      unique: true,
+    },
     id_cliente: {
       type: DataTypes.INTEGER,
       allowNull: false,

@@ -4,10 +4,10 @@ import Role from '../models/Role.js';
 
 // Middleware para validar el registro de un nuevo usuario
 export const validarNuevoUsuario = async (req, res, next) => {
-  const { tipo_documento, documento, nombre, apellido, correo, contrasena, id_rol } = req.body;
+  const { tipo_documento, documento, nombre, apellido, correo, contrasena } = req.body;
 
-  // Validar campos obligatorios
-  if (!tipo_documento || !documento || !nombre || !apellido || !correo || !contrasena || !id_rol) {
+  // Validar campos obligatorios (id_rol se asigna automáticamente)
+  if (!tipo_documento || !documento || !nombre || !apellido || !correo || !contrasena) {
     return res.status(400).json({ mensaje: 'Todos los campos son obligatorios' });
   }
 
@@ -38,12 +38,7 @@ export const validarNuevoUsuario = async (req, res, next) => {
     return res.status(400).json({ mensaje: 'El documento ya está registrado' });
   }
 
-  // Validar que el rol exista
-  const rolValido = await Role.findByPk(id_rol);
-  if (!rolValido) {
-    return res.status(400).json({ mensaje: 'El rol no existe' });
-  }
-
+  // El rol se asigna automáticamente como 'cliente'
   next();
 };
 

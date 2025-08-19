@@ -15,6 +15,13 @@ export const findUserByEmail = async (correo) => {
   });
 };
 
+// 🔹 Buscar rol por nombre
+export const findRoleByName = async (nombreRol) => {
+  return await Rol.findOne({
+    where: { nombre: nombreRol }
+  });
+};
+
 // 🔹 Crear un nuevo usuario
 export const createUser = async (userData) => {
   return await User.create(userData);

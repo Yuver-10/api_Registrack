@@ -6,14 +6,15 @@ export class SolicitudesRepository {
   async findAll() {
     return await OrdenServicio.findAll({
       attributes: [
-        ["numero_expediente", "N° de expediente"],
-        ["fecha_creacion", "Fecha de solicitud"],
+        "numero_expediente",
+        "fecha_creacion",
         "estado",
       ],
       include: [
         {
           model: Servicio,
-          attributes: [["nombre", "Tipo de solicitud"]],
+          as: "servicio",
+          attributes: ["nombre", "descripcion", "precio_base"],
         },
       ],
     });
@@ -23,21 +24,22 @@ export class SolicitudesRepository {
   async findBySearch(search) {
     return await OrdenServicio.findAll({
       attributes: [
-        ["numero_expediente", "N° de expediente"],
-        ["fecha_creacion", "Fecha de solicitud"],
+        "numero_expediente",
+        "fecha_creacion",
         "estado",
       ],
       include: [
         {
           model: Servicio,
-          attributes: [["nombre", "Tipo de solicitud"]],
+          as: "servicio",
+          attributes: ["nombre", "descripcion", "precio_base"],
         },
       ],
       where: {
         [Op.or]: [
           { numero_expediente: { [Op.like]: `%${search}%` } },
           { estado: { [Op.like]: `%${search}%` } },
-          { "$Servicio.nombre$": { [Op.like]: `%${search}%` } },
+          { "$servicio.nombre$": { [Op.like]: `%${search}%` } },
         ],
       },
     });
@@ -48,8 +50,8 @@ export class SolicitudesRepository {
     return await OrdenServicio.findByPk(id, {
       attributes: [
         "id_orden_servicio",
-        ["numero_expediente", "N° de expediente"],
-        ["fecha_creacion", "Fecha de solicitud"],
+        "numero_expediente",
+        "fecha_creacion",
         "estado",
         "pais",
         "ciudad",
@@ -72,8 +74,9 @@ export class SolicitudesRepository {
       include: [
         {
           model: Servicio,
+          as: "servicio",
           attributes: [
-            ["nombre", "Tipo de solicitud"],
+            "nombre",
             "descripcion",
             "precio_base",
           ],

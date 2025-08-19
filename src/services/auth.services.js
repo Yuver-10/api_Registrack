@@ -1,11 +1,25 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { createUser, findUserByEmail } from "../repositories/auth.repository.js";
+import { createUser, findUserByEmail, findRoleByName } from "../repositories/auth.repository.js";
 
 // 🔹 Lógica de registro
 export const registerUser = async (datos) => {
+  // Buscar el rol 'cliente' automáticamente
+  const rolCliente = await findRoleByName('cliente');
+  if (!rolCliente) {
+    throw new Error('El rol cliente no existe en el sistema. Contacte al administrador.');
+  }
+
   const hashedPassword = await bcrypt.hash(datos.contrasena, 10);
-  return await createUser({ ...datos, contrasena: hashedPassword });
+  
+  // Asignar automáticamente el rol de cliente
+  const datosConRol = {
+    ...datos,
+    contrasena: hashedPassword,
+    id_rol: rolCliente.id_rol
+  };
+  
+  return await createUser(datosConRol);
 };
 
 // 🔹 Lógica de login

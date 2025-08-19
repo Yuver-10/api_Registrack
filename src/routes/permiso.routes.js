@@ -7,22 +7,15 @@ import {
   updatePermiso,
   deletePermiso
 } from '../controllers/permisoController.js';
+import { roleMiddleware } from '../middlewares/role.middleware.js';
 
 const router = Router();
 
-// Crear permiso
-router.post('/', createPermiso);
-
-// Listar todos los permisos
-router.get('/', getAllPermisos);
-
-// Obtener permiso por ID
-router.get('/:id', getPermisoById);
-
-// Actualizar permiso por ID
-router.put('/:id', updatePermiso);
-
-// Eliminar permiso por ID
-router.delete('/:id', deletePermiso);
+// Todas las rutas de permisos solo para administradores
+router.post('/', roleMiddleware(["administrador"]), createPermiso);
+router.get('/', roleMiddleware(["administrador"]), getAllPermisos);
+router.get('/:id', roleMiddleware(["administrador"]), getPermisoById);
+router.put('/:id', roleMiddleware(["administrador"]), updatePermiso);
+router.delete('/:id', roleMiddleware(["administrador"]), deletePermiso);
 
 export default router;

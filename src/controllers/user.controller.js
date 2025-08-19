@@ -23,7 +23,24 @@ export const getUsuarioPorId = async (req, res) => {
 
 export const updateUsuario = async (req, res) => {
   try {
-    const usuarioActualizado = await userService.updateUsuarioById(req.params.id, req.body);
+    const { id } = req.params;
+    const { user } = req; // Datos del usuario autenticado desde el token
+    
+    // Si es cliente, solo puede actualizar sus propios datos
+    if (user.rol === 'cliente' && user.id_usuario != id) {
+      return res.status(403).json({ 
+        mensaje: 'No tienes permisos para actualizar este usuario. Solo puedes actualizar tu propio perfil.' 
+      });
+    }
+    
+    // Si es cliente, no puede cambiar su rol
+    if (user.rol === 'cliente' && req.body.id_rol) {
+      return res.status(403).json({ 
+        mensaje: 'No tienes permisos para cambiar el rol de usuario.' 
+      });
+    }
+    
+    const usuarioActualizado = await userService.updateUsuarioById(id, req.body);
     if (!usuarioActualizado) {
       return res.status(404).json({ mensaje: 'Usuario no encontrado' });
     }

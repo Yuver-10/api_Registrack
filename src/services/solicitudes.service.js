@@ -20,6 +20,23 @@ export class SolicitudesService {
     }
   }
 
+  // Listar solicitudes de un usuario específico (para clientes)
+  async listarSolicitudesPorUsuario(idUsuario) {
+    try {
+      const ordenes = await OrdenServicio.findAll({
+        where: {
+          id_cliente: idUsuario
+        },
+        include: [
+          { model: Servicio, as: "servicio" }
+        ]
+      });
+      return ordenes;
+    } catch (error) {
+      throw new Error("Error al listar solicitudes del usuario: " + error.message);
+    }
+  }
+
   // Buscar solicitudes
   async buscarSolicitud(search) {
     try {
@@ -77,6 +94,7 @@ export class SolicitudesService {
         "ciudad",
         "codigo_postal",
         "estado",
+        "numero_expediente",
       ];
 
       for (const campo of camposRequeridos) {

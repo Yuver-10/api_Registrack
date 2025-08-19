@@ -20,11 +20,11 @@ import { roleMiddleware } from "../middlewares/role.middleware.js";
 
 const router = Router();
 
-// 🔹 Cliente puede crear solicitud
+
 router.post(
   "/crear",
   authMiddleware,
-  roleMiddleware(["cliente", "administrador", "empleado"]), // opcionalmente admin/empleado también
+  roleMiddleware(["cliente", "administrador", "empleado"]), 
   validateSolicitud,
   crearSolicitud
 );
