@@ -3,7 +3,7 @@ import { SolicitudesService } from "../services/solicitudes.service.js";
 const solicitudesService = new SolicitudesService();
 
 // Listar todas las solicitudes
-// 🔹 Si es cliente, solo ve las suyas
+// Si es cliente, solo ve las suyas
 export const listarSolicitudes = async (req, res) => {
   try {
     let solicitudes;
@@ -80,7 +80,7 @@ export const anularSolicitud = async (req, res) => {
 // Crear solicitud (cliente/admin/empleado)
 export const crearSolicitud = async (req, res) => {
   try {
-    // 🔹 Forzamos que el userId venga del token, no del body
+    // Forzamos que el userId venga del token, no del body
     const nuevaSolicitud = {
       ...req.body,
       usuario_id: req.user.id,

@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "sync-db": "node sync-db.js",
-    "seed-roles": "node seed-roles.js"
+    "seed-roles": "node seed-roles.js",
+    "create-admin": "node create-admin.js"
   },
   "keywords": [],
   "author": "",

@@ -16,7 +16,7 @@ async function syncDatabase() {
     console.log("   - servicios");
     
   } catch (error) {
-    console.error("❌ Error al sincronizar la base de datos:", error);
+    console.error("Error al sincronizar la base de datos:", error);
   } finally {
     await sequelize.close();
   }

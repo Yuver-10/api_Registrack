@@ -1,4 +1,18 @@
 import * as userService from '../services/user.services.js';
+import { createUserWithRole } from '../services/auth.services.js';
+
+// Crear usuario por administrador (con rol específico)
+export const createUserByAdmin = async (req, res) => {
+  try {
+    const nuevoUsuario = await createUserWithRole(req.body);
+    res.status(201).json({ 
+      mensaje: 'Usuario creado exitosamente por administrador', 
+      usuario: nuevoUsuario 
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 
 export const getUsuarios = async (req, res) => {
   try {

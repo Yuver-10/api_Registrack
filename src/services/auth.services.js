@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { createUser, findUserByEmail, findRoleByName } from "../repositories/auth.repository.js";
+import { Rol } from "../models/user_rol.js";
 
 // 🔹 Lógica de registro
 export const registerUser = async (datos) => {
@@ -52,4 +53,50 @@ export const loginUser = async (correo, contrasena) => {
   const { contrasena: _, ...usuarioSinPass } = usuario.toJSON();
 
   return { usuario: usuarioSinPass, token };
+};
+
+// 🔹 Lógica para crear usuario con rol específico (solo administradores)
+export const createUserWithRole = async (datos) => {
+  const { id_rol, ...userData } = datos;
+  
+  // Validar que se proporcione un rol
+  if (!id_rol) {
+    throw new Error("El campo id_rol es requerido para crear usuarios por administrador");
+  }
+  
+  // Verificar que el rol existe
+  const rolExistente = await Rol.findByPk(id_rol);
+  if (!rolExistente) {
+    throw new Error("El rol especificado no existe");
+  }
+  
+  // Validar que el rol sea válido (solo admin, empleado, cliente)
+  const rolesValidos = ['administrador', 'empleado', 'cliente'];
+  if (!rolesValidos.includes(rolExistente.nombre)) {
+    throw new Error("Rol no válido. Solo se pueden crear usuarios con roles: administrador, empleado, cliente");
+  }
+  
+  // Verificar duplicados por correo
+  const usuarioExistente = await findUserByEmail(userData.correo);
+  if (usuarioExistente) {
+    throw new Error("Ya existe un usuario con este correo electrónico");
+  }
+  
+  // Hashear contraseña
+  const hashedPassword = await bcrypt.hash(userData.contrasena, 10);
+  
+  // Crear usuario con rol específico
+  const nuevoUsuario = await createUser({ 
+    ...userData, 
+    contrasena: hashedPassword,
+    id_rol: id_rol 
+  });
+  
+  // Buscar usuario creado con información del rol
+  const usuarioConRol = await findUserByEmail(userData.correo);
+  
+  // Devolver datos limpios (sin la contraseña)
+  const { contrasena: _, ...usuarioSinPass } = usuarioConRol.toJSON();
+  
+  return usuarioSinPass;
 };

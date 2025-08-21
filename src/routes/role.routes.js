@@ -7,7 +7,7 @@ import {
 } from '../middlewares/role.middleware.js';
 import { validationResult } from 'express-validator';
 
-// 🔐 Middlewares de seguridad
+//  Middlewares de seguridad
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
 
@@ -20,7 +20,7 @@ const validateResults = (req, res, next) => {
   next();
 };
 
-// 🔹 Solo ADMIN puede gestionar roles
+//  Solo ADMIN puede gestionar roles
 router.get('/', authMiddleware, roleMiddleware(["administrador"]), getRoles);
 router.post('/', authMiddleware, roleMiddleware(["administrador"]), createRoleValidation, validateResults, createRole);
 router.get('/:id', authMiddleware, roleMiddleware(["administrador"]), getRoleById);

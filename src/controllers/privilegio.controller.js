@@ -1,4 +1,3 @@
-// src/controllers/privilegioController.js
 import privilegioService from '../services/privilegio.service.js';
 
 export const createPrivilegio = async (req, res) => {

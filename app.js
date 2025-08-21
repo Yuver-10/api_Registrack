@@ -15,7 +15,7 @@ import {
 
 import "./src/config/db.js"; 
 
-// 🔹 Importaremos los middlewares de seguridad
+//  Importaremos los middlewares de seguridad
 import { authMiddleware } from "./src/middlewares/auth.middleware.js";
 import { roleMiddleware } from "./src/middlewares/role.middleware.js";
 
@@ -24,10 +24,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 👇 Usuarios: aquí suele estar el login/registro (NO necesita auth globalmente)
+// Usuarios: aquí suele estar el login/registro (NO necesita auth globalmente)
 app.use("/api/usuarios", UsuarioRoutes);
 
-// 👇 Rutas protegidas
+// Rutas protegidas
 app.use("/api/pagos", authMiddleware, pagoRoutes);
 app.use("/api/roles", authMiddleware, RolesRoutes);
 app.use("/api/permisos", authMiddleware, PermisoRoutes);
