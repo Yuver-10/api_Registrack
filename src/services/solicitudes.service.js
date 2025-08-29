@@ -1,16 +1,166 @@
 import { SolicitudesRepository } from "../repositories/solicitudes.repository.js";
+import OrdenServicio from "../models/OrdenServicio.js";
+import Servicio from "../models/Servicio.js";
+import { Op } from "sequelize";
 
 export class SolicitudesService {
   constructor() {
     this.repository = new SolicitudesRepository();
   }
 
-  // Obtener todas las solicitudes
+  // Listar solicitudes con el Servicio asociado
   async listarSolicitudes() {
     try {
-      return await this.repository.findAll();
+      const ordenes = await OrdenServicio.findAll({
+        include: [
+          { model: Servicio, as: "servicio" }, // 'as' debe coincidir con la relación definida
+        ],
+      });
+      return ordenes;
     } catch (error) {
       throw new Error("Error al listar solicitudes: " + error.message);
+    }
+  }
+
+  // Listar solicitudes de un usuario específico (para clientes)
+  async listarSolicitudesPorUsuario(idUsuario) {
+    try {
+      const ordenes = await OrdenServicio.findAll({
+        attributes: [
+          "id_orden_servicio",
+          "numero_expediente",
+          "fecha_creacion",
+          "estado",
+          "pais",
+          "nombredelaempresa",
+        ],
+        where: {
+          id_cliente: idUsuario,
+        },
+        include: [
+          {
+            model: Servicio,
+            as: "servicio",
+            attributes: ["nombre", "descripcion"],
+          },
+        ],
+        order: [["fecha_creacion", "DESC"]],
+      });
+      return ordenes;
+    } catch (error) {
+      throw new Error(
+        "Error al listar solicitudes del usuario: " + error.message
+      );
+    }
+  }
+
+  // Listar solicitudes en proceso de un cliente específico
+  async listarSolicitudesEnProcesoPorUsuario(idUsuario) {
+    try {
+      const ordenes = await OrdenServicio.findAll({
+        attributes: [
+          "id_orden_servicio",
+          "numero_expediente",
+          "fecha_creacion",
+          "estado",
+          "pais",
+          "nombredelaempresa",
+        ],
+        where: {
+          id_cliente: idUsuario,
+          estado: {
+            [Op.notIn]: ["Anulado", "Rechazado", "Aprobado"],
+          },
+        },
+        include: [
+          {
+            model: Servicio,
+            as: "servicio",
+            attributes: ["nombre", "descripcion"],
+          },
+        ],
+        order: [["fecha_creacion", "DESC"]],
+      });
+      return ordenes;
+    } catch (error) {
+      throw new Error(
+        "Error al listar solicitudes en proceso del usuario: " + error.message
+      );
+    }
+  }
+
+  // Listar solicitudes finalizadas de un cliente específico
+  async listarSolicitudesFinalizadasPorUsuario(idUsuario) {
+    try {
+      const ordenes = await OrdenServicio.findAll({
+        attributes: [
+          "id_orden_servicio",
+          "numero_expediente",
+          "fecha_creacion",
+          "estado",
+          "pais",
+          "nombredelaempresa",
+        ],
+        where: {
+          id_cliente: idUsuario,
+          estado: {
+            [Op.in]: ["Anulado", "Rechazado", "Aprobado"],
+          },
+        },
+        include: [
+          {
+            model: Servicio,
+            as: "servicio",
+            attributes: ["nombre", "descripcion"],
+          },
+        ],
+        order: [["fecha_creacion", "DESC"]],
+      });
+      return ordenes;
+    } catch (error) {
+      throw new Error(
+        "Error al listar solicitudes finalizadas del usuario: " + error.message
+      );
+    }
+  }
+
+  // Listar solicitudes en proceso (admin/empleado)
+  async listarSolicitudesEnProceso() {
+    try {
+      const ordenes = await OrdenServicio.findAll({
+        where: {
+          estado: {
+            [Op.notIn]: ["Anulado", "Rechazado", "Aprobado"],
+          },
+        },
+        include: [{ model: Servicio, as: "servicio" }],
+        order: [["fecha_creacion", "DESC"]],
+      });
+      return ordenes;
+    } catch (error) {
+      throw new Error(
+        "Error al listar solicitudes en proceso: " + error.message
+      );
+    }
+  }
+
+  // Listar solicitudes finalizadas (admin/empleado)
+  async listarSolicitudesFinalizadas() {
+    try {
+      const ordenes = await OrdenServicio.findAll({
+        where: {
+          estado: {
+            [Op.in]: ["Anulado", "Rechazado", "Aprobado"],
+          },
+        },
+        include: [{ model: Servicio, as: "servicio" }],
+        order: [["fecha_creacion", "DESC"]],
+      });
+      return ordenes;
+    } catch (error) {
+      throw new Error(
+        "Error al listar solicitudes finalizadas: " + error.message
+      );
     }
   }
 
@@ -23,7 +173,7 @@ export class SolicitudesService {
 
       const solicitudes = await this.repository.findBySearch(search);
 
-      if (solicitudes.length === 0) {
+      if (!solicitudes || solicitudes.length === 0) {
         throw new Error("No se encontraron coincidencias.");
       }
 
@@ -37,11 +187,9 @@ export class SolicitudesService {
   async verDetalleSolicitud(id) {
     try {
       const solicitud = await this.repository.findById(id);
-
       if (!solicitud) {
         throw new Error("Solicitud no encontrada.");
       }
-
       return solicitud;
     } catch (error) {
       throw new Error("Error al ver detalle de solicitud: " + error.message);
@@ -52,11 +200,9 @@ export class SolicitudesService {
   async anularSolicitud(id) {
     try {
       const solicitud = await this.repository.updateEstado(id, "Anulado");
-
       if (!solicitud) {
         throw new Error("Solicitud no encontrada.");
       }
-
       return { mensaje: `La solicitud ${id} ha sido anulada correctamente.` };
     } catch (error) {
       throw new Error("Error al anular la solicitud: " + error.message);
@@ -66,7 +212,6 @@ export class SolicitudesService {
   // Crear nueva solicitud
   async crearSolicitud(solicitudData) {
     try {
-      // Validar datos requeridos
       const camposRequeridos = [
         "id_cliente",
         "id_servicio",
@@ -75,9 +220,10 @@ export class SolicitudesService {
         "pais",
         "ciudad",
         "codigo_postal",
-        "estado",
         "numero_expediente",
       ];
+
+      // El estado se maneja automáticamente según el rol del usuario
 
       for (const campo of camposRequeridos) {
         if (!solicitudData[campo]) {
@@ -85,19 +231,20 @@ export class SolicitudesService {
         }
       }
 
-      // Verificar duplicados
-      const solicitudExistente = await this.repository.findDuplicate(
-        solicitudData.id_cliente,
-        solicitudData.id_servicio
-      );
-
-      if (solicitudExistente) {
-        throw new Error(
-          "Ya existe una solicitud para este cliente y servicio. No se permiten solicitudes duplicadas."
-        );
+      // Generar número de expediente único si no se proporciona
+      if (!solicitudData.numero_expediente) {
+        const timestamp = Date.now();
+        const random = Math.floor(Math.random() * 1000);
+        solicitudData.numero_expediente = `EXP-${timestamp}-${random}`;
       }
 
-      // Crear la solicitud
+      // Asegurar que el estado esté definido (por defecto "Inicial")
+      if (!solicitudData.estado) {
+        solicitudData.estado = "Inicial";
+      }
+
+      // Validación de duplicados removida para permitir múltiples solicitudes por cliente y servicio
+
       const nuevaSolicitud = await this.repository.create(solicitudData);
 
       return {
@@ -105,26 +252,39 @@ export class SolicitudesService {
         solicitud: nuevaSolicitud,
       };
     } catch (error) {
-      throw new Error("Error al crear la solicitud: " + error.message);
+      // Mejorar el manejo de errores para obtener más detalles
+      if (error.name === "SequelizeUniqueConstraintError") {
+        throw new Error(
+          `Error de validación: El número de expediente '${solicitudData.numero_expediente}' ya existe en la base de datos.`
+        );
+      } else if (error.name === "SequelizeValidationError") {
+        const errores = error.errors
+          .map((e) => `${e.path}: ${e.message}`)
+          .join(", ");
+        throw new Error(`Error de validación: ${errores}`);
+      } else if (error.name === "SequelizeForeignKeyConstraintError") {
+        throw new Error(
+          `Error de clave foránea: Verifica que el cliente, servicio o empresa existan en la base de datos.`
+        );
+      } else {
+        throw new Error("Error al crear la solicitud: " + error.message);
+      }
     }
   }
 
-  // Editar solicitud de servicio
+  // Editar solicitud
   async editarSolicitud(id, datosActualizados) {
     try {
-      // Validar que la solicitud existe
       const solicitudExistente = await this.repository.findById(id);
       if (!solicitudExistente) {
         throw new Error("Solicitud no encontrada.");
       }
 
-      // Validar campos requeridos para edición
       const camposEditables = [
         "pais",
         "ciudad",
         "codigo_postal",
         "total_estimado",
-        // Campos editables para "¿Quién solicita el servicio?"
         "tipodepersona",
         "tipodedocumento",
         "numerodedocumento",
@@ -132,16 +292,13 @@ export class SolicitudesService {
         "correoelectronico",
         "telefono",
         "direccion",
-        // Campos editables para información de la empresa
         "tipodeentidadrazonsocial",
         "nombredelaempresa",
         "nit",
-        // Campos editables para documentos de poder
         "poderdelrepresentanteautorizado",
         "poderparaelregistrodelamarca",
       ];
 
-      // Verificar que al menos un campo editable esté presente
       const camposPresentes = camposEditables.filter(
         (campo) =>
           datosActualizados[campo] !== undefined &&
@@ -152,7 +309,6 @@ export class SolicitudesService {
         throw new Error("Debe proporcionar al menos un campo para editar.");
       }
 
-      // Editar la solicitud
       const solicitudEditada = await this.repository.editarSolicitud(
         id,
         datosActualizados

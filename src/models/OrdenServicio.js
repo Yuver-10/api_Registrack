@@ -1,5 +1,7 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
+import Servicio from "./Servicio.js";
+import User from "./user.js";
 
 const OrdenServicio = sequelize.define(
   "OrdenServicio",
@@ -10,8 +12,8 @@ const OrdenServicio = sequelize.define(
       autoIncrement: true,
     },
     numero_expediente: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: DataTypes.STRING(50),
+      allowNull: true,
       unique: true,
     },
     id_cliente: {
@@ -107,5 +109,35 @@ const OrdenServicio = sequelize.define(
     timestamps: false,
   }
 );
+
+// Relación OrdenServicio -> Servicio
+OrdenServicio.belongsTo(Servicio, {
+  foreignKey: "id_servicio",
+  as: "servicio",
+});
+Servicio.hasMany(OrdenServicio, {
+  foreignKey: "id_servicio",
+  as: "ordenes",
+});
+
+// Relación OrdenServicio -> Usuario (cliente)
+OrdenServicio.belongsTo(User, {
+  foreignKey: "id_cliente",
+  as: "cliente",
+});
+User.hasMany(OrdenServicio, {
+  foreignKey: "id_cliente",
+  as: "ordenes_cliente",
+});
+
+// Relación OrdenServicio -> Usuario (empresa)
+OrdenServicio.belongsTo(User, {
+  foreignKey: "id_empresa",
+  as: "empresa",
+});
+User.hasMany(OrdenServicio, {
+  foreignKey: "id_empresa",
+  as: "ordenes_empresa",
+});
 
 export default OrdenServicio;

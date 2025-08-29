@@ -1,24 +1,44 @@
 import express from "express";
-import solicitudesRoutes from "./src/routes/solicitudes.routes.js";
+import cors from "cors";
+
+import pagoRoutes from "./src/routes/pago.routes.js";
+import UsuarioRoutes from "./src/routes/usuario.routes.js";
+import RolesRoutes from "./src/routes/role.routes.js";
+import PermisoRoutes from "./src/routes/permiso.routes.js";
+import PrivilegioRoutes from "./src/routes/privilegio.routes.js";
+import SolicitudesRoutes from "./src/routes/solicitudes.routes.js";
+import SeguimientoRoutes from "./src/routes/seguimiento.routes.js";
+import ServicioRoutes from "./src/routes/servicio.routes.js";
+
 import {
   errorHandler,
   notFoundHandler,
 } from "./src/middlewares/error.middleware.js";
 
+import "./src/config/db.js";
+
+//  Importaremos los middlewares de seguridad
+import { authMiddleware } from "./src/middlewares/auth.middleware.js";
+import { roleMiddleware } from "./src/middlewares/role.middleware.js";
+
 const app = express();
 
-// Middlewares básicos
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Middleware para logging de requests
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-  next();
-});
+// Usuarios: aquí suele estar el login/registro (NO necesita auth globalmente)
+app.use("/api/usuarios", UsuarioRoutes);
 
-// Rutas de la API
-app.use("/api", solicitudesRoutes);
+// Servicios: rutas públicas para consultar servicios
+app.use("/api/servicios", ServicioRoutes);
+
+// Rutas protegidas
+app.use("/api/pagos", authMiddleware, pagoRoutes);
+app.use("/api/roles", authMiddleware, RolesRoutes);
+app.use("/api/permisos", authMiddleware, PermisoRoutes);
+app.use("/api/privilegios", authMiddleware, PrivilegioRoutes);
+app.use("/api/solicitudes", authMiddleware, SolicitudesRoutes);
+app.use("/api/seguimiento", authMiddleware, SeguimientoRoutes);
 
 // Middleware para manejar rutas no encontradas (debe ir antes del error handler)
 app.use(notFoundHandler);

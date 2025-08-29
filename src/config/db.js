@@ -1,23 +1,33 @@
 import dotenv from "dotenv";
-dotenv.config();
 import { Sequelize } from "sequelize";
 
+dotenv.config();
+
+console.log("Conectando a MySQL con:", {
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  pass: process.env.DB_PASS,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT
+});
+
 const sequelize = new Sequelize(
-  process.env.DB_NAME || "registrack",
-  process.env.DB_USER || "root",
-  process.env.DB_PASS || "",
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASS,
   {
-    host: process.env.DB_HOST || "localhost",
-    port: process.env.DB_PORT || 3306,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
     dialect: "mysql",
-    logging: process.env.NODE_ENV === "development" ? console.log : false,
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000,
-    },
+    logging: false
   }
 );
+
+try {
+  await sequelize.authenticate();
+  console.log("✅ Conexión a MySQL exitosa");
+} catch (err) {
+  console.error("❌ Error de conexión:", err);
+}
 
 export default sequelize;

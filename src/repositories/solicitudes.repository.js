@@ -3,18 +3,14 @@ import OrdenServicio from "../models/OrdenServicio.js";
 import Servicio from "../models/Servicio.js";
 
 export class SolicitudesRepository {
-  // Obtener todas las solicitudes con información del servicio
   async findAll() {
     return await OrdenServicio.findAll({
-      attributes: [
-        ["numero_expediente", "N° de expediente"],
-        ["fecha_creacion", "Fecha de solicitud"],
-        "estado",
-      ],
+      attributes: ["numero_expediente", "fecha_creacion", "estado"],
       include: [
         {
           model: Servicio,
-          attributes: [["nombre", "Tipo de solicitud"]],
+          as: "servicio",
+          attributes: ["nombre", "descripcion", "precio_base"],
         },
       ],
     });
@@ -23,22 +19,19 @@ export class SolicitudesRepository {
   // Buscar solicitudes por criterios
   async findBySearch(search) {
     return await OrdenServicio.findAll({
-      attributes: [
-        ["numero_expediente", "N° de expediente"],
-        ["fecha_creacion", "Fecha de solicitud"],
-        "estado",
-      ],
+      attributes: ["numero_expediente", "fecha_creacion", "estado"],
       include: [
         {
           model: Servicio,
-          attributes: [["nombre", "Tipo de solicitud"]],
+          as: "servicio",
+          attributes: ["nombre", "descripcion", "precio_base"],
         },
       ],
       where: {
         [Op.or]: [
           { numero_expediente: { [Op.like]: `%${search}%` } },
           { estado: { [Op.like]: `%${search}%` } },
-          { "$Servicio.nombre$": { [Op.like]: `%${search}%` } },
+          { "$servicio.nombre$": { [Op.like]: `%${search}%` } },
         ],
       },
     });
@@ -49,8 +42,8 @@ export class SolicitudesRepository {
     return await OrdenServicio.findByPk(id, {
       attributes: [
         "id_orden_servicio",
-        ["numero_expediente", "N° de expediente"],
-        ["fecha_creacion", "Fecha de solicitud"],
+        "numero_expediente",
+        "fecha_creacion",
         "estado",
         "pais",
         "ciudad",
@@ -73,25 +66,14 @@ export class SolicitudesRepository {
       include: [
         {
           model: Servicio,
-          attributes: [
-            ["nombre", "Tipo de solicitud"],
-            "descripcion",
-            "precio_base",
-          ],
+          as: "servicio",
+          attributes: ["nombre", "descripcion", "precio_base"],
         },
       ],
     });
   }
 
-  // Verificar si existe una solicitud duplicada
-  async findDuplicate(idCliente, idServicio) {
-    return await OrdenServicio.findOne({
-      where: {
-        id_cliente: idCliente,
-        id_servicio: idServicio,
-      },
-    });
-  }
+  // Función findDuplicate removida - se permiten múltiples solicitudes por cliente y servicio
 
   // Crear nueva solicitud
   async create(solicitudData) {
