@@ -75,3 +75,18 @@ export const deleteUsuario = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Controlador para cambiar el estado del usuario (activar/desactivar)
+export const changeUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { estado } = req.body; // Nuevo estado (true/false)
+    const usuarioActualizado = await userService.changeUserStatus(id, estado);
+    if (!usuarioActualizado) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    res.json({ mensaje: 'Estado del usuario actualizado', usuario: usuarioActualizado });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

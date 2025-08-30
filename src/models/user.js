@@ -41,6 +41,11 @@ const User = sequelize.define("User", {
       model: Rol,
       key: "id_rol"
     }
+  },
+    estado: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: 1
   }
 }, {
   tableName: "usuarios",

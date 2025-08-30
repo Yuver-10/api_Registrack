@@ -89,3 +89,15 @@ export const validarActualizarUsuario = async (req, res, next) => {
 
   next();
 };
+
+// Middleware para validar el cambio de estado del usuario
+export const validarCambioEstadoUsuario = async (req, res, next) => {
+  const { estado } = req.body; 
+  if (estado === undefined) {
+    return res.status(400).json({ mensaje: 'El estado es obligatorio' });
+  }
+  if (typeof estado !== 'boolean') {
+    return res.status(400).json({ mensaje: 'El estado debe ser true o false' });
+  }
+  next();
+};

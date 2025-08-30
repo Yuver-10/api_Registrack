@@ -1,4 +1,3 @@
-// roleRepository.js
 import Role from '../models/Role.js';
 import Permiso from '../models/Permiso.js';
 import Privilegio from '../models/Privilegio.js';

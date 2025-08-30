@@ -1,4 +1,3 @@
-// src/repositories/user.repository.js
 import User from '../models/user.js';
 
 export const getAllUsers = async () => {
@@ -20,4 +19,13 @@ export const updateUserById = async (id, data) => {
 export const deleteUserById = async (id) => {
   const deleted = await User.destroy({ where: { id_usuario: id } });
   return deleted > 0;
+};
+
+//cambiar estado
+export const changeUserStatus = async (id, status) => {
+  const [updated] = await User.update({ estado: status }, { where: { id_usuario: id } });
+  if (updated) {
+    return await User.findByPk(id);
+  }
+  return null;
 };
