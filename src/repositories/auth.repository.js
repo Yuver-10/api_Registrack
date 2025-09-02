@@ -26,3 +26,12 @@ export const findRoleByName = async (nombreRol) => {
 export const createUser = async (userData) => {
   return await User.create(userData);
 };
+
+// Buscar usuario por token de restablecimiento
+export const findUserByResetToken = async (hashedToken) => {
+  return await User.findOne({
+    where: {
+      resetPasswordToken: hashedToken,
+    },
+  });
+};
