@@ -1,11 +1,18 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+<<<<<<< HEAD
+import { createUser, findUserByEmail, findRoleByName } from "../repositories/auth.repository.js";
+import { Role as Rol } from "../models/index.js";
+
+// 🔹 Lógica de registro
+=======
 import crypto from "crypto";
 import { createUser, findUserByEmail, findRoleByName, findUserByResetToken } from "../repositories/auth.repository.js";
 import { Rol } from "../models/user_rol.js";
 import { sendPasswordResetEmail } from "./email.service.js";
 
 //  Lógica de registro
+>>>>>>> main
 export const registerUser = async (datos) => {
   // Buscar el rol 'cliente' automáticamente
   const rolCliente = await findRoleByName('cliente');
@@ -57,6 +64,9 @@ export const loginUser = async (correo, contrasena) => {
   return { usuario: usuarioSinPass, token };
 };
 
+<<<<<<< HEAD
+// 🔹 Lógica para crear usuario con rol específico (solo administradores)
+=======
 //  Lógica para solicitar restablecimiento de contraseña
 export const handleForgotPassword = async (correo) => {
   const usuario = await findUserByEmail(correo);
@@ -114,6 +124,7 @@ export const handleResetPassword = async (token, newPassword) => {
 
 
 //  Lógica para crear usuario con rol específico (solo administradores)
+>>>>>>> main
 export const createUserWithRole = async (datos) => {
   const { id_rol, ...userData } = datos;
   

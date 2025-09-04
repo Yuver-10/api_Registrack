@@ -45,18 +45,24 @@ export const PagoController = {
         { header: "Método de Pago", key: "metodo_pago", width: 20 },
         { header: "Estado", key: "estado", width: 15 },
         { header: "Comprobante", key: "comprobante_url", width: 30 },
-        { header: "Orden de Servicio", key: "id_orden_servicio", width: 20 }
+        { header: "Orden de Servicio", key: "id_orden_servicio", width: 20 },
       ];
 
-      pagos.forEach(p => worksheet.addRow(p));
+      pagos.forEach((p) => worksheet.addRow(p));
 
-      worksheet.getRow(1).eachCell(cell => {
+      worksheet.getRow(1).eachCell((cell) => {
         cell.font = { bold: true };
         cell.alignment = { horizontal: "center" };
       });
 
-      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-      res.setHeader("Content-Disposition", "attachment; filename=reporte_pagos.xlsx");
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=reporte_pagos.xlsx"
+      );
 
       await workbook.xlsx.write(res);
       res.end();
@@ -77,7 +83,10 @@ export const PagoController = {
 
       // Config headers para descargar
       res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `attachment; filename=comprobante_pago_${id}.pdf`);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=comprobante_pago_${id}.pdf`
+      );
 
       // Enviar directo como stream
       doc.pipe(res);
@@ -100,5 +109,5 @@ export const PagoController = {
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 };
