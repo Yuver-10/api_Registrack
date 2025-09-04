@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 import Cita from "../models/citas.js";
 import User from "../models/user.js";
+import ExcelJS from "exceljs";
 
 export const getCitas = async (req, res) => {
     try {
@@ -257,5 +258,69 @@ export const anularCita = async (req, res) => {
         res.json({ message: "Cita anulada exitosamente.", cita });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+// Reporte Excel de citas
+export const descargarReporteCitas = async (req, res) => {
+    try {
+        const citas = await Cita.findAll({
+            include: [
+                {
+                    model: User,
+                    as: 'Cliente',
+                    attributes: ['id_usuario', 'documento', 'nombre', 'apellido']
+                },
+                {
+                    model: User,
+                    as: 'Empleado',
+                    attributes: ['id_usuario', 'nombre', 'apellido']
+                }
+            ]
+        });
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("Citas");
+
+        worksheet.columns = [
+            { header: "ID Cita", key: "id_cita", width: 10 },
+            { header: "Fecha", key: "fecha", width: 15 },
+            { header: "Hora Inicio", key: "hora_inicio", width: 15 },
+            { header: "Hora Fin", key: "hora_fin", width: 15 },
+            { header: "Tipo", key: "tipo", width: 15 },
+            { header: "Modalidad", key: "modalidad", width: 15 },
+            { header: "Estado", key: "estado", width: 15 },
+            { header: "Cliente", key: "cliente", width: 25 },
+            { header: "Empleado", key: "empleado", width: 25 },
+            { header: "Observación", key: "observacion", width: 30 }
+        ];
+
+        citas.forEach(cita => {
+            worksheet.addRow({
+                id_cita: cita.id_cita,
+                fecha: cita.fecha,
+                hora_inicio: cita.hora_inicio,
+                hora_fin: cita.hora_fin,
+                tipo: cita.tipo,
+                modalidad: cita.modalidad,
+                estado: cita.estado,
+                cliente: cita.Cliente ? `${cita.Cliente.nombre} ${cita.Cliente.apellido}` : 'No asignado',
+                empleado: cita.Empleado ? `${cita.Empleado.nombre} ${cita.Empleado.apellido}` : 'No asignado',
+                observacion: cita.observacion || ''
+            });
+        });
+
+        worksheet.getRow(1).eachCell(cell => {
+            cell.font = { bold: true };
+            cell.alignment = { horizontal: "center" };
+        });
+
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.setHeader("Content-Disposition", "attachment; filename=reporte_citas.xlsx");
+
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (error) {
+        res.status(500).json({ message: "Error al generar el reporte de citas", error: error.message });
     }
 };

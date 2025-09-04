@@ -4,7 +4,8 @@ import {
   listarClientes, 
   obtenerCliente, 
   editarCliente, 
-  borrarCliente 
+  borrarCliente,
+  descargarReporteClientes
 } from "../controllers/cliente.controller.js";
 
 // Middlewares
@@ -19,5 +20,8 @@ router.get("/:id", roleMiddleware(["administrador", "empleado", "cliente"]), obt
 router.post("/", roleMiddleware(["administrador", "empleado"]), crearCliente);
 router.put("/:id", roleMiddleware(["administrador", "empleado"]), editarCliente);
 router.delete("/:id", roleMiddleware(["administrador"]), borrarCliente);
+
+// Ruta para descargar reporte Excel de clientes
+router.get("/reporte/excel", roleMiddleware(["administrador", "empleado"]), descargarReporteClientes);
 
 export default router;

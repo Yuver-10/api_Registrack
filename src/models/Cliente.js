@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
+import User from "./user.js";
 
 const Cliente = sequelize.define("Cliente", {
   id_cliente: {
@@ -27,5 +28,8 @@ const Cliente = sequelize.define("Cliente", {
   tableName: "clientes",
   timestamps: false,
 });
+
+// Asociación con User
+Cliente.belongsTo(User, { foreignKey: 'id_usuario', as: 'Usuario' });
 
 export default Cliente;

@@ -5,7 +5,7 @@ import { createUser, findUserByEmail, findRoleByName, findUserByResetToken } fro
 import { Rol } from "../models/user_rol.js";
 import { sendPasswordResetEmail } from "./email.service.js";
 
-// 🔹 Lógica de registro
+//  Lógica de registro
 export const registerUser = async (datos) => {
   // Buscar el rol 'cliente' automáticamente
   const rolCliente = await findRoleByName('cliente');
@@ -57,7 +57,7 @@ export const loginUser = async (correo, contrasena) => {
   return { usuario: usuarioSinPass, token };
 };
 
-// 🔹 Lógica para solicitar restablecimiento de contraseña
+//  Lógica para solicitar restablecimiento de contraseña
 export const handleForgotPassword = async (correo) => {
   const usuario = await findUserByEmail(correo);
 
@@ -89,7 +89,7 @@ export const handleForgotPassword = async (correo) => {
   }
 };
 
-// 🔹 Lógica para restablecer la contraseña
+//  Lógica para restablecer la contraseña
 export const handleResetPassword = async (token, newPassword) => {
   // Hashear el token recibido para buscarlo en la BD
   const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
@@ -113,7 +113,7 @@ export const handleResetPassword = async (token, newPassword) => {
 };
 
 
-// 🔹 Lógica para crear usuario con rol específico (solo administradores)
+//  Lógica para crear usuario con rol específico (solo administradores)
 export const createUserWithRole = async (datos) => {
   const { id_rol, ...userData } = datos;
   
