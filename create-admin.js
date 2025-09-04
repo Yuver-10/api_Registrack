@@ -11,6 +11,7 @@ async function createAdmin() {
       documento: 1234567890, // 10 dígitos para cumplir constraint
       nombre: "Admin",
       apellido: "Sistema",
+      correo: "admin@registrack.com", // Añadido el correo electrónico
       contrasena: "Admin123!", // Se hasheará automáticamente
     };
 

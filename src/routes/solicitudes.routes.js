@@ -1,19 +1,13 @@
 import { Router } from "express";
 import {
   listarSolicitudes,
-  listarSolicitudesEnProceso,
-  listarSolicitudesFinalizadas,
-  listarMisSolicitudesEnProceso,
-  listarMiHistorial,
   buscarSolicitud,
-  
   verDetalleSolicitud,
   anularSolicitud,
   crearSolicitud,
   editarSolicitud,
 } from "../controllers/solicitudes.controller.js";
 import {
-  validateSolicitud,
   validateSearch,
   validateId,
   validateEdicionSolicitud,
@@ -42,19 +36,9 @@ router.get(
 );
 
 //  Nuevos endpoints para clientes - separar en proceso y finalizadas
-router.get(
-  "/mias/proceso",
-  authMiddleware,
-  roleMiddleware(["cliente"]),
-  listarMisSolicitudesEnProceso
-);
+// Ruta eliminada: no existe la función listarMisSolicitudesEnProceso en el controlador
 
-router.get(
-  "/mias/historial",
-  authMiddleware,
-  roleMiddleware(["cliente"]),
-  listarMiHistorial
-);
+// Ruta eliminada: no existe la función listarMiHistorial en el controlador
 
 //  Admin y empleado pueden gestionar todas
 router.get(
@@ -65,18 +49,20 @@ router.get(
 );
 
 //  Nuevos endpoints para separar solicitudes en proceso y finalizadas
-router.get(
-  "/proceso",
-  authMiddleware,
-  roleMiddleware(["administrador", "empleado"]),
-  listarSolicitudesEnProceso
-);
-router.get(
-  "/fin",
-  authMiddleware,
-  roleMiddleware(["administrador", "empleado"]),
-  listarSolicitudesFinalizadas
-);
+// Ruta eliminada: no existe la función listarSolicitudesEnProceso en el controlador
+// router.get(
+//   "/proceso",
+//   authMiddleware,
+//   roleMiddleware(["administrador", "empleado"]),
+//   listarSolicitudesEnProceso
+// );
+// Ruta eliminada: no existe la función listarSolicitudesFinalizadas en el controlador
+// router.get(
+//   "/fin",
+//   authMiddleware,
+//   roleMiddleware(["administrador", "empleado"]),
+//   listarSolicitudesFinalizadas
+// );
 router.get(
   "/buscar",
   authMiddleware,

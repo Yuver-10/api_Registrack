@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { User } from '../models/index.js';
-=======
-import User from '../models/user.js';
->>>>>>> main
+import User from '../models/User.js';
 import { Op } from 'sequelize';
 
 // Obtener todos los usuarios
@@ -43,8 +39,6 @@ export const existeDocumento = async (documento, excludeId = null) => {
     : { documento };
   return await User.findOne({ where });
 };
-<<<<<<< HEAD
-=======
 
 
 //cambiar estado
@@ -55,4 +49,3 @@ export const changeUserStatus = async (id, status) => {
   }
   return null;
 };
->>>>>>> main
