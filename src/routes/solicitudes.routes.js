@@ -24,11 +24,11 @@ import { roleMiddleware } from "../middlewares/role.middleware.js";
 
 const router = Router();
 
+// Ruta para crear solicitud con validación dinámica según el servicio en la URL
 router.post(
-  "/crear",
+  "/crear/:servicio",
   authMiddleware,
   roleMiddleware(["cliente", "administrador", "empleado"]),
-  validateSolicitud,
   crearSolicitud
 );
 

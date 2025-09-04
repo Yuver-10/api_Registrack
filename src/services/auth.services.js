@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { createUser, findUserByEmail, findRoleByName } from "../repositories/auth.repository.js";
-import { Rol } from "../models/user_rol.js";
+import { Role as Rol } from "../models/index.js";
 
 // 🔹 Lógica de registro
 export const registerUser = async (datos) => {

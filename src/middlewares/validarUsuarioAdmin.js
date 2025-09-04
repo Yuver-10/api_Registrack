@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
-import User from '../models/user.js';
-import { Rol } from '../models/user_rol.js';
+import { User } from '../models/index.js';
+import { Role as Rol } from '../models/index.js';
 
 // Middleware para validar creación de usuario por administrador
 export const validarCrearUsuarioPorAdmin = async (req, res, next) => {

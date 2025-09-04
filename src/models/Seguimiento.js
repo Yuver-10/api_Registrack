@@ -1,7 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 import OrdenServicio from "./OrdenServicio.js";
-import User from "./user.js";
 
 const Seguimiento = sequelize.define(
   "Seguimiento",
@@ -21,19 +20,20 @@ const Seguimiento = sequelize.define(
     },
     descripcion: {
       type: DataTypes.TEXT,
-      allowNull: true,
+      allowNull: false,
     },
     documentos_adjuntos: {
       type: DataTypes.TEXT,
       allowNull: true,
-    },
-    fecha_registro: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
+      defaultValue: null,
     },
     registrado_por: {
       type: DataTypes.INTEGER,
       allowNull: false,
+    },
+    fecha_registro: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
   },
   {
@@ -52,14 +52,7 @@ OrdenServicio.hasMany(Seguimiento, {
   as: "seguimientos",
 });
 
-// Relación Seguimiento -> Usuario (quien registró)
-Seguimiento.belongsTo(User, {
-  foreignKey: "registrado_por",
-  as: "usuario_registro",
-});
-User.hasMany(Seguimiento, {
-  foreignKey: "registrado_por",
-  as: "seguimientos_registrados",
-});
+// Nota: La relación con User se manejará desde el módulo principal
+// ya que este modelo no pertenece a este módulo
 
 export default Seguimiento;

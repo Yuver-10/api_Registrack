@@ -1,5 +1,5 @@
 // src/repositories/privilegioRepository.js
-import Privilegio from '../models/Privilegio.js';
+import { Privilegio } from '../models/index.js';
 
 export const createPrivilegio = (data) => Privilegio.create(data);
 

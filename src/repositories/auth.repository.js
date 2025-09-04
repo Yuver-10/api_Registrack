@@ -1,5 +1,5 @@
 // auth.repository.js
-import { User, Rol } from "../models/user_rol.js"; // asegúrate que aquí exportas ambos modelos con las asociaciones definidas
+import { User, Role as Rol } from "../models/index.js";
 
 // 🔹 Buscar usuario por correo incluyendo su rol
 export const findUserByEmail = async (correo) => {

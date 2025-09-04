@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 import Seguimiento from "../models/Seguimiento.js";
 import OrdenServicio from "../models/OrdenServicio.js";
-import User from "../models/user.js";
+import { User } from "../models/index.js";
 
 export class SeguimientoRepository {
   // Obtener todos los seguimientos de una orden de servicio

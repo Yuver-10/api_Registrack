@@ -1,4 +1,4 @@
-import User from '../models/user.js';
+import { User } from '../models/index.js';
 import { Op } from 'sequelize';
 
 // Obtener todos los usuarios

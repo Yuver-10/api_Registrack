@@ -1,7 +1,7 @@
 // roleRepository.js
-import Role from '../models/Role.js';
-import Permiso from '../models/Permiso.js';
-import Privilegio from '../models/Privilegio.js';
+import { Role } from '../models/index.js';
+import { Permiso } from '../models/index.js';
+import { Privilegio } from '../models/index.js';
 
 const roleRepository = {
   getAllRoles: async () => {

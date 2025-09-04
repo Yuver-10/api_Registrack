@@ -9,6 +9,7 @@ import PrivilegioRoutes from "./src/routes/privilegio.routes.js";
 import SolicitudesRoutes from "./src/routes/solicitudes.routes.js";
 import SeguimientoRoutes from "./src/routes/seguimiento.routes.js";
 import ServicioRoutes from "./src/routes/servicio.routes.js";
+import FormularioDinamicoRoutes from "./src/routes/formularioDinamico.routes.js";
 
 import {
   errorHandler,
@@ -31,6 +32,9 @@ app.use("/api/usuarios", UsuarioRoutes);
 
 // Servicios: rutas públicas para consultar servicios
 app.use("/api/servicios", ServicioRoutes);
+
+// Formularios dinámicos: rutas públicas para validación
+app.use("/api/formularios-dinamicos", FormularioDinamicoRoutes);
 
 // Rutas protegidas
 app.use("/api/pagos", authMiddleware, pagoRoutes);

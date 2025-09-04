@@ -1,6 +1,37 @@
 import { SolicitudesService } from "../services/solicitudes.service.js";
+import { validarCamposObligatorios } from "../config/tiposFormularios.js";
+import { Servicio } from "../models/index.js";
 
 const solicitudesService = new SolicitudesService();
+
+// Mapeo de nombres de servicios simplificados a nombres reales en la BD
+const MAPEO_SERVICIOS = {
+  "busqueda-antecedentes": "Búsqueda de antecedentes",
+  "certificacion-marca": "Certificación de marca",
+  "renovacion-marca": "Renovación de marca",
+  "cesion-derechos": "Cesión de derechos",
+  oposicion: "Oposición de marca",
+  "respuesta-oposicion": "Respuesta a oposición",
+  "ampliacion-cobertura": "Ampliación de cobertura",
+};
+
+// Función para obtener el ID del servicio por nombre
+async function obtenerIdServicio(nombreServicio) {
+  const nombreReal = MAPEO_SERVICIOS[nombreServicio];
+  if (!nombreReal) {
+    throw new Error(`Servicio '${nombreServicio}' no encontrado`);
+  }
+
+  const servicio = await Servicio.findOne({
+    where: { nombre: nombreReal },
+  });
+
+  if (!servicio) {
+    throw new Error(`Servicio '${nombreReal}' no existe en la base de datos`);
+  }
+
+  return servicio.id_servicio;
+}
 
 // Listar todas las solicitudes
 // Si es cliente, solo ve las suyas
@@ -134,30 +165,71 @@ export const anularSolicitud = async (req, res) => {
   }
 };
 
-// Crear solicitud (cliente/admin/empleado)
+// Crear solicitud con validación dinámica según el servicio en la URL
 export const crearSolicitud = async (req, res) => {
   try {
-    // Forzamos que el userId venga del token, no del body
+    const { servicio } = req.params;
+    const datosSolicitud = req.body;
+
+    // Obtener el ID del servicio desde la base de datos
+    const idServicio = await obtenerIdServicio(servicio);
+
+    // Validar campos obligatorios según el servicio de la URL
+    // Validar campos obligatorios con lógica condicional
+    const validacion = validarCamposObligatorios(servicio, datosSolicitud);
+
+    if (!validacion.esValido) {
+      return res.status(400).json({
+        success: false,
+        mensaje: "Campos obligatorios faltantes",
+        servicio: servicio,
+        campos_faltantes: validacion.camposFaltantes,
+        errores: validacion.errores,
+      });
+    }
+
+    // Preparar datos para la solicitud - SOLO los campos que existen en la tabla
     const nuevaSolicitud = {
-      ...req.body,
-      id_cliente: req.user.id_usuario, // Asignar automáticamente el cliente desde el token
+      id_cliente: req.user.id_usuario,
+      id_servicio: idServicio,
+      id_empresa: 1,
+      total_estimado: datosSolicitud.total_estimado || 100000,
+      pais: datosSolicitud.pais || "Colombia",
+      ciudad: datosSolicitud.ciudad || "Bogotá",
+      codigo_postal: datosSolicitud.codigo_postal || 110111,
+      estado: req.user.role === "cliente" ? "Inicial" : "Pendiente",
+      fecha_creacion: new Date(),
     };
 
     // 🔹 Si es cliente, forzar estado "Inicial" y no permitir cambiarlo
     if (req.user.role === "cliente") {
       nuevaSolicitud.estado = "Inicial";
-      // Remover el estado del body si el cliente lo envió
-      delete req.body.estado;
     }
 
     const resultado = await solicitudesService.crearSolicitud(nuevaSolicitud);
-    res.status(201).json(resultado);
+
+    res.status(201).json({
+      success: true,
+      mensaje: "Solicitud creada exitosamente",
+      servicio: servicio,
+      id_servicio: idServicio,
+      campos_validados:
+        validacion.camposFaltantes.length === 0
+          ? "Todos los campos validados"
+          : "Campos validados con éxito",
+      data: resultado,
+    });
   } catch (error) {
     console.error("Error al crear la solicitud:", error);
     if (error.message.includes("es requerido")) {
       res.status(400).json({ mensaje: error.message });
     } else if (error.message.includes("Ya existe una solicitud")) {
       res.status(409).json({ mensaje: error.message });
+    } else if (
+      error.message.includes("no encontrado") ||
+      error.message.includes("no existe")
+    ) {
+      res.status(404).json({ mensaje: error.message });
     } else {
       res
         .status(500)

@@ -1,7 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 import Servicio from "./Servicio.js";
-import User from "./user.js";
 
 const OrdenServicio = sequelize.define(
   "OrdenServicio",
@@ -10,11 +9,6 @@ const OrdenServicio = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
-    },
-    numero_expediente: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      unique: true,
     },
     id_cliente: {
       type: DataTypes.INTEGER,
@@ -45,63 +39,12 @@ const OrdenServicio = sequelize.define(
       allowNull: false,
     },
     codigo_postal: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     estado: {
       type: DataTypes.STRING(50),
       allowNull: false,
-    },
-    // Campos editables para "¿Quién solicita el servicio?"
-    tipodepersona: {
-      type: DataTypes.STRING(20),
-      allowNull: true,
-    },
-    tipodedocumento: {
-      type: DataTypes.STRING(10),
-      allowNull: true,
-    },
-    numerodedocumento: {
-      type: DataTypes.STRING(20),
-      allowNull: true,
-    },
-    nombrecompleto: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    correoelectronico: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    telefono: {
-      type: DataTypes.STRING(20),
-      allowNull: true,
-    },
-    direccion: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    // Campos editables para información de la empresa
-    tipodeentidadrazonsocial: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    nombredelaempresa: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    nit: {
-      type: DataTypes.STRING(20),
-      allowNull: true,
-    },
-    // Campos editables para documentos de poder
-    poderdelrepresentanteautorizado: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    poderparaelregistrodelamarca: {
-      type: DataTypes.TEXT,
-      allowNull: true,
     },
   },
   {
@@ -115,29 +58,12 @@ OrdenServicio.belongsTo(Servicio, {
   foreignKey: "id_servicio",
   as: "servicio",
 });
+
 Servicio.hasMany(OrdenServicio, {
   foreignKey: "id_servicio",
   as: "ordenes",
 });
 
-// Relación OrdenServicio -> Usuario (cliente)
-OrdenServicio.belongsTo(User, {
-  foreignKey: "id_cliente",
-  as: "cliente",
-});
-User.hasMany(OrdenServicio, {
-  foreignKey: "id_cliente",
-  as: "ordenes_cliente",
-});
-
-// Relación OrdenServicio -> Usuario (empresa)
-OrdenServicio.belongsTo(User, {
-  foreignKey: "id_empresa",
-  as: "empresa",
-});
-User.hasMany(OrdenServicio, {
-  foreignKey: "id_empresa",
-  as: "ordenes_empresa",
-});
+// Relación con User se manejará desde index.js para evitar referencias circulares
 
 export default OrdenServicio;

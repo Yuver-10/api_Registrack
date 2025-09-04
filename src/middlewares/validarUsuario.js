@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
-import User from '../models/user.js';
-import Role from '../models/Role.js';
+import { User } from '../models/index.js';
+import { Role } from '../models/index.js';
 
 // Middleware para validar el registro de un nuevo usuario
 export const validarNuevoUsuario = async (req, res, next) => {

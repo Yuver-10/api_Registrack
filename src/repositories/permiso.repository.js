@@ -1,5 +1,5 @@
 // src/repositories/permisoRepository.js
-import Permiso from '../models/Permiso.js';
+import { Permiso } from '../models/index.js';
 
 export const createPermiso = async (permiso) => Permiso.create(permiso);
 export const getAllPermisos = async () => Permiso.findAll();
