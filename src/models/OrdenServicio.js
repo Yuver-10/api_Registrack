@@ -10,6 +10,11 @@ const OrdenServicio = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
+    numero_expediente: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      unique: true,
+    },
     id_cliente: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -39,12 +44,63 @@ const OrdenServicio = sequelize.define(
       allowNull: false,
     },
     codigo_postal: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(10),
       allowNull: false,
     },
     estado: {
       type: DataTypes.STRING(50),
       allowNull: false,
+    },
+    // Campos editables para "¿Quién solicita el servicio?"
+    tipodepersona: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    tipodedocumento: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+    },
+    numerodedocumento: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    nombrecompleto: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    correoelectronico: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    telefono: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    direccion: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    // Campos editables para información de la empresa
+    tipodeentidadrazonsocial: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    nombredelaempresa: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    nit: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    // Campos editables para documentos de poder
+    poderdelrepresentanteautorizado: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    poderparaelregistrodelamarca: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
   },
   {
@@ -52,18 +108,5 @@ const OrdenServicio = sequelize.define(
     timestamps: false,
   }
 );
-
-// Relación OrdenServicio -> Servicio
-OrdenServicio.belongsTo(Servicio, {
-  foreignKey: "id_servicio",
-  as: "servicio",
-});
-
-Servicio.hasMany(OrdenServicio, {
-  foreignKey: "id_servicio",
-  as: "ordenes",
-});
-
-// Relación con User se manejará desde index.js para evitar referencias circulares
 
 export default OrdenServicio;

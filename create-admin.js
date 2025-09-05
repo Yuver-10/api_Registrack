@@ -1,19 +1,16 @@
-
 import bcrypt from "bcryptjs";
 import sequelize from "./src/config/db.js";
-import { User, Role as Rol } from "./src/models/index.js";
+import { User, Rol } from "./src/models/user_rol.js";
 
 async function createAdmin() {
   try {
     console.log("Creando usuario administrador...");
-
     // Datos del administrador
     const adminData = {
       tipo_documento: "CC",
       documento: 1234567890, // 10 dígitos para cumplir constraint
       nombre: "Admin",
       apellido: "Sistema",
-      correo: "admin@registrack.com",
       contrasena: "Admin123!", // Se hasheará automáticamente
     };
 
@@ -22,7 +19,6 @@ async function createAdmin() {
     const usuarioExistente = await User.findOne({
       where: { correo: adminData.correo },
     });
-
     if (usuarioExistente) {
       console.log("El usuario administrador ya existe:");
       console.log(`   Email: ${adminData.correo}`);
@@ -48,7 +44,6 @@ async function createAdmin() {
     // Hashear la contraseña
     console.log(" Hasheando contraseña...");
     const hashedPassword = await bcrypt.hash(adminData.contrasena, 10);
-
     // Crear el usuario administrador
     console.log(" Creando usuario administrador...");
     const nuevoAdmin = await User.create({
@@ -60,7 +55,6 @@ async function createAdmin() {
       contrasena: hashedPassword,
       id_rol: rolAdmin.id_rol,
     });
-
     console.log(" Usuario administrador creado exitosamente!");
     console.log("\n CREDENCIALES PARA POSTMAN:");
     console.log(`   Email: ${adminData.correo}`);

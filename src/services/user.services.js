@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { User } from '../models/index.js';
+=======
+import User from '../models/user.js';
+>>>>>>> main
 import { Op } from 'sequelize';
 
 // Obtener todos los usuarios
@@ -39,3 +43,16 @@ export const existeDocumento = async (documento, excludeId = null) => {
     : { documento };
   return await User.findOne({ where });
 };
+<<<<<<< HEAD
+=======
+
+
+//cambiar estado
+export const changeUserStatus = async (id, status) => {
+  const [updated] = await User.update({ estado: status }, { where: { id_usuario: id } });
+  if (updated) {
+    return await User.findByPk(id);
+  }
+  return null;
+};
+>>>>>>> main

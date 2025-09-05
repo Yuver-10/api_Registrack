@@ -1,9 +1,18 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+<<<<<<< HEAD
 import { createUser, findUserByEmail, findRoleByName } from "../repositories/auth.repository.js";
 import { Role as Rol } from "../models/index.js";
 
 // 🔹 Lógica de registro
+=======
+import crypto from "crypto";
+import { createUser, findUserByEmail, findRoleByName, findUserByResetToken } from "../repositories/auth.repository.js";
+import { Rol } from "../models/user_rol.js";
+import { sendPasswordResetEmail } from "./email.service.js";
+
+//  Lógica de registro
+>>>>>>> main
 export const registerUser = async (datos) => {
   // Buscar el rol 'cliente' automáticamente
   const rolCliente = await findRoleByName('cliente');
@@ -55,7 +64,67 @@ export const loginUser = async (correo, contrasena) => {
   return { usuario: usuarioSinPass, token };
 };
 
+<<<<<<< HEAD
 // 🔹 Lógica para crear usuario con rol específico (solo administradores)
+=======
+//  Lógica para solicitar restablecimiento de contraseña
+export const handleForgotPassword = async (correo) => {
+  const usuario = await findUserByEmail(correo);
+
+  // Respuesta neutra para no revelar si un correo existe o no.
+  if (!usuario) {
+    console.log(`Solicitud de restablecimiento para correo no existente: ${correo}`);
+    return;
+  }
+
+  // Generar token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+  // Establecer fecha de expiración (15 minutos)
+  const expirationDate = new Date(Date.now() + 15 * 60 * 1000);
+
+  // Guardar token hasheado y expiración en el usuario
+  usuario.resetPasswordToken = hashedToken;
+  usuario.resetPasswordExpires = expirationDate;
+  await usuario.save();
+
+  // Enviar correo (con el token original, no el hasheado)
+  try {
+    await sendPasswordResetEmail(usuario.correo, resetToken, usuario.nombre);
+  } catch (error) {
+    // Si el correo falla, es importante no exponer el error al cliente.
+    // Se loggea internamente y se continúa para dar la respuesta neutra.
+    console.error("Error al enviar correo en handleForgotPassword:", error);
+  }
+};
+
+//  Lógica para restablecer la contraseña
+export const handleResetPassword = async (token, newPassword) => {
+  // Hashear el token recibido para buscarlo en la BD
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  // Buscar usuario por el token hasheado
+  const usuario = await findUserByResetToken(hashedToken);
+
+  // Validar que el token sea válido y no haya expirado
+  if (!usuario || usuario.resetPasswordExpires < new Date()) {
+    throw new Error("Token inválido o expirado. Por favor, solicita un nuevo restablecimiento.");
+  }
+
+  // Hashear la nueva contraseña
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // Actualizar contraseña y limpiar campos del token
+  usuario.contrasena = hashedPassword;
+  usuario.resetPasswordToken = null;
+  usuario.resetPasswordExpires = null;
+  await usuario.save();
+};
+
+
+//  Lógica para crear usuario con rol específico (solo administradores)
+>>>>>>> main
 export const createUserWithRole = async (datos) => {
   const { id_rol, ...userData } = datos;
   

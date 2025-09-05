@@ -5,7 +5,15 @@ import Servicio from "../models/Servicio.js";
 export class SolicitudesRepository {
   async findAll() {
     return await OrdenServicio.findAll({
+<<<<<<< HEAD
       attributes: ["numero_expediente", "fecha_creacion", "estado"],
+=======
+      attributes: [
+        "numero_expediente",
+        "fecha_creacion",
+        "estado",
+      ],
+>>>>>>> main
       include: [
         {
           model: Servicio,
@@ -19,7 +27,15 @@ export class SolicitudesRepository {
   // Buscar solicitudes por criterios
   async findBySearch(search) {
     return await OrdenServicio.findAll({
+<<<<<<< HEAD
       attributes: ["numero_expediente", "fecha_creacion", "estado"],
+=======
+      attributes: [
+        "numero_expediente",
+        "fecha_creacion",
+        "estado",
+      ],
+>>>>>>> main
       include: [
         {
           model: Servicio,
@@ -67,13 +83,33 @@ export class SolicitudesRepository {
         {
           model: Servicio,
           as: "servicio",
+<<<<<<< HEAD
           attributes: ["nombre", "descripcion", "precio_base"],
+=======
+          attributes: [
+            "nombre",
+            "descripcion",
+            "precio_base",
+          ],
+>>>>>>> main
         },
       ],
     });
   }
 
+<<<<<<< HEAD
   // Función findDuplicate removida - se permiten múltiples solicitudes por cliente y servicio
+=======
+  // Verificar si existe una solicitud duplicada
+  async findDuplicate(idCliente, idServicio) {
+    return await OrdenServicio.findOne({
+      where: {
+        id_cliente: idCliente,
+        id_servicio: idServicio,
+      },
+    });
+  }
+>>>>>>> main
 
   // Crear nueva solicitud
   async create(solicitudData) {

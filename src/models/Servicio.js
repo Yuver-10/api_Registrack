@@ -47,7 +47,5 @@ const Servicio = sequelize.define(
   }
 );
 
-// Relación Servicio -> OrdenServicio (ya definida en OrdenServicio.js)
-// Esta relación se mantiene aquí para referencia
 
 export default Servicio;
