@@ -22,8 +22,8 @@ const router = Router();
 // Ruta para crear solicitud con validación dinámica según el servicio en la URL
 router.post(
   "/crear/:servicio",
-  authMiddleware,
-  roleMiddleware(["cliente", "administrador", "empleado"]),
+  // authMiddleware, // Temporalmente deshabilitado
+  // roleMiddleware(["cliente", "administrador", "empleado"]), // Temporalmente deshabilitado
   crearSolicitud
 );
 

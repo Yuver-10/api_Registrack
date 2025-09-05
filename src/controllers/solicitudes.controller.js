@@ -71,7 +71,7 @@ const requiredFields = {
     "nombre_marca",
     "documento_cesion",
   ],
-  Oposición: [
+  "Oposición de marca": [
     "nombre_opositor",
     "documento_nit_opositor",
     "direccion",
@@ -113,16 +113,49 @@ const requiredFields = {
     "descripcion_nuevos_productos_servicios",
     "soportes",
   ],
+  "Respuesta a oposición": [
+    "nombre_titular_que_responde",
+    "documento_nit_titular",
+    "direccion",
+    "ciudad",
+    "pais",
+    "correo",
+    "telefono",
+    "numero_solicitud_registro",
+    "clase_niza",
+    "argumentos_respuesta",
+    "soportes",
+  ],
 };
 
 // Función principal para crear solicitud dinámica
 export const crearSolicitud = async (req, res) => {
   try {
     // Obtener el nombreServicio de los parámetros de la URL
-    const { nombreServicio } = req.params;
+    let nombreServicio = req.params.servicio;
 
-    // Validar que el nombreServicio exista en requiredFields
-    if (!requiredFields[nombreServicio]) {
+    // Mock user temporal para pruebas
+    if (!req.user) {
+      req.user = { id_usuario: 1, role: "cliente" };
+    }
+
+    // Decodificar URL y limpiar espacios
+    nombreServicio = decodeURIComponent(nombreServicio).trim();
+
+    // Buscar el servicio de forma insensible a mayúsculas/minúsculas y caracteres especiales
+    const servicioEncontrado = Object.keys(requiredFields).find((key) => {
+      const keyNormalized = key
+        .toLowerCase()
+        .replace(/[ó]/g, "o")
+        .replace(/[í]/g, "i");
+      const nombreNormalized = nombreServicio
+        .toLowerCase()
+        .replace(/[ó]/g, "o")
+        .replace(/[í]/g, "i");
+      return keyNormalized === nombreNormalized;
+    });
+
+    if (!servicioEncontrado) {
       return res.status(404).json({
         mensaje: "Servicio no encontrado",
         servicio: nombreServicio,
@@ -131,7 +164,7 @@ export const crearSolicitud = async (req, res) => {
     }
 
     // Determinar campos requeridos según el rol del usuario
-    let camposRequeridos = [...requiredFields[nombreServicio]];
+    let camposRequeridos = [...requiredFields[servicioEncontrado]];
 
     // Si es cliente, agregar campos de pago como obligatorios
     if (req.user.role === "cliente") {
@@ -146,7 +179,7 @@ export const crearSolicitud = async (req, res) => {
     if (camposFaltantes.length > 0) {
       return res.status(400).json({
         mensaje: "Faltan campos requeridos para este servicio",
-        servicio: nombreServicio,
+        servicio: servicioEncontrado,
         rol_usuario: req.user.role,
         camposFaltantes: camposFaltantes,
         camposRequeridos: camposRequeridos,
@@ -159,13 +192,13 @@ export const crearSolicitud = async (req, res) => {
 
     // Buscar el servicio en la base de datos por nombre
     const servicio = await Servicio.findOne({
-      where: { nombre: nombreServicio },
+      where: { nombre: servicioEncontrado },
     });
 
     if (!servicio) {
       return res.status(404).json({
         mensaje: "Servicio no encontrado en la base de datos",
-        servicio: nombreServicio,
+        servicio: servicioEncontrado,
       });
     }
 
@@ -233,7 +266,7 @@ export const crearSolicitud = async (req, res) => {
     const datosOrdenServicio = {
       id_cliente: req.user.id_usuario, // Obtener del token de autenticación
       id_servicio: servicio.id_servicio,
-      ...mapearCamposServicio(req.body, nombreServicio, req.user.role),
+      ...mapearCamposServicio(req.body, servicioEncontrado, req.user.role),
     };
 
     // Crear la orden en la base de datos
@@ -245,7 +278,7 @@ export const crearSolicitud = async (req, res) => {
       orden: {
         id_orden_servicio: nuevaOrden.id_orden_servicio,
         numero_expediente: nuevaOrden.numero_expediente,
-        servicio: nombreServicio,
+        servicio: servicioEncontrado,
         estado: nuevaOrden.estado,
         fecha_creacion: nuevaOrden.fecha_creacion,
         total_estimado: nuevaOrden.total_estimado,

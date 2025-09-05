@@ -1,0 +1,23 @@
+{
+  "tipo_titular": "Natural",
+  "nombre_marca": "MiMarcaCorporativa",
+  "clase_niza": "35",
+  "descripcion_marca": "Servicios de consultoría empresarial y gestión de negocios",
+  "logo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+  "nombre_completo_titular": "Juan Carlos Pérez García",
+  "documento_identidad_titular": "12345678",
+  "direccion_titular": "Calle 123 #45-67, Barrio Centro",
+  "ciudad_titular": "Bogotá",
+  "pais_titular": "Colombia",
+  "correo_titular": "juan.perez@email.com",
+  "telefono_titular": "3001234567",
+  "razon_social": "Mi Empresa S.A.S.",
+  "nit": "900123456-1",
+  "representante_legal": "María González López",
+  "documento_representante_legal": "87654321",
+  "nombre_representante": "Carlos Rodríguez",
+  "documento_representante": "11223344",
+  "poder": "data:application/pdf;base64,JVBERi0xLjQKJcfsj6IKNSAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDMgMCBSCi9SZXNvdXJjZXMgPDwKL0ZvbnQgPDwKL0YxIDYgMCBSCj4+Cj4+Ci9NZWRpYUJveCBbMCAwIDU5NSA4NDJdCi9Db250ZW50cyA3IDAgUgo+PgplbmRvYmoKNiAwIG9iago8PAovVHlwZSAvRm9udAovU3VidHlwZSAvVHlwZTEKL0Jhc2VGb250IC9IZWx2ZXRpY2EKPj4KZW5kb2JqCjcgMCBvYmoKPDwKL0xlbmd0aCA0NDAKPj4Kc3RyZWFtCkJUCi9GMSAxMiBUZgoyMCA3MDAgVGQKKFBvZGVyIGRlbCBSZXByZXNlbnRhbnRlKSBUagoKRVQKZW5kc3RyZWFtCmVuZG9iagozIDAgb2JqCjw8Ci9UeXBlIC9QYWdlcwovQ291bnQgMQovS2lkcyBbNCAwIFJdCj4+CmVuZG9iago0IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMyAwIFIKL1Jlc291cmNlcyA8PAovRm9udCA8PAovRjEgNiAwIFIKPj4KPj4KL01lZGlhQm94IFswIDAgNTk1IDg0Ml0KL0NvbnRlbnRzIDcgMCBSCj4+CmVuZG9iagoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAzIDAgUgo+PgplbmRvYmoKMiAwIG9iago8PAovVHlwZSAvTWV0YWRhdGEKL1N1YmplY3QgKFBvZGVyIGRlbCBSZXByZXNlbnRhbnRlKQo+PgplbmRvYmoKeHJlZgowIDgKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNzQgMDAwMDAgbiAKMDAwMDAwMDEyMCAwMDAwMCBuIAowMDAwMDAwMjQ5IDAwMDAwIG4gCjAwMDAwMDAzMjQgMDAwMDAgbiAKMDAwMDAwMDQwMyAwMDAwMCBuIAowMDAwMDAwNDUxIDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgOAovUm9vdCAxIDAgUgo+PgpzdGFydHhyZWYKNTQ5CiUlRU9G",
+  "metodo_pago": "Transferencia bancaria",
+  "monto_pago": "2000000.00"
+}

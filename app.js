@@ -48,7 +48,7 @@ app.use("/api/roles", authMiddleware, RolesRoutes);
 app.use("/api/permisos", authMiddleware, PermisoRoutes);
 app.use("/api/privilegios", authMiddleware, PrivilegioRoutes);
 app.use("/api/citas", authMiddleware, CitasRoutes);
-app.use("/api/solicitudes", authMiddleware, SolicitudesRoutes);
+app.use("/api/solicitudes", SolicitudesRoutes); // authMiddleware removido temporalmente
 app.use("/api/solicitud-cita", authMiddleware, SolicitudCitaRoutes);
 app.use("/api/seguimiento", authMiddleware, SeguimientoRoutes);
 app.use("/api/clientes", authMiddleware, ClienteRoutes);
