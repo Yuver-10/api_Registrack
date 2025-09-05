@@ -8,7 +8,6 @@ import {
   editarSolicitud,
 } from "../controllers/solicitudes.controller.js";
 import {
-  validateSolicitud,
   validateSearch,
   validateId,
   validateEdicionSolicitud,
@@ -20,12 +19,11 @@ import { roleMiddleware } from "../middlewares/role.middleware.js";
 
 const router = Router();
 
-
+// Ruta dinámica para crear solicitudes por servicio (ÚNICA ruta de creación)
 router.post(
-  "/crear",
+  "/crear/:nombreServicio",
   authMiddleware,
-  roleMiddleware(["cliente", "administrador", "empleado"]), 
-  validateSolicitud,
+  roleMiddleware(["cliente", "administrador", "empleado"]),
   crearSolicitud
 );
 
@@ -38,10 +36,40 @@ router.get(
 );
 
 //  Admin y empleado pueden gestionar todas
-router.get("/", authMiddleware, roleMiddleware(["administrador", "empleado"]), listarSolicitudes);
-router.get("/buscar", authMiddleware, roleMiddleware(["administrador", "empleado"]), validateSearch, buscarSolicitud);
-router.get("/:id", authMiddleware, roleMiddleware(["administrador", "empleado"]), validateId, verDetalleSolicitud);
-router.put("/anular/:id", authMiddleware, roleMiddleware(["administrador", "empleado"]), validateId, anularSolicitud);
-router.put("/editar/:id", authMiddleware, roleMiddleware(["administrador", "empleado"]), validateId, validateEdicionSolicitud, editarSolicitud);
+router.get(
+  "/",
+  authMiddleware,
+  roleMiddleware(["administrador", "empleado"]),
+  listarSolicitudes
+);
+router.get(
+  "/buscar",
+  authMiddleware,
+  roleMiddleware(["administrador", "empleado"]),
+  validateSearch,
+  buscarSolicitud
+);
+router.get(
+  "/:id",
+  authMiddleware,
+  roleMiddleware(["administrador", "empleado"]),
+  validateId,
+  verDetalleSolicitud
+);
+router.put(
+  "/anular/:id",
+  authMiddleware,
+  roleMiddleware(["administrador", "empleado"]),
+  validateId,
+  anularSolicitud
+);
+router.put(
+  "/editar/:id",
+  authMiddleware,
+  roleMiddleware(["administrador", "empleado"]),
+  validateId,
+  validateEdicionSolicitud,
+  editarSolicitud
+);
 
 export default router;

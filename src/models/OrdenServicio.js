@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
-import Servicio from "./Servicio.js"; 
+import Servicio from "./Servicio.js";
 
 const OrdenServicio = sequelize.define(
   "OrdenServicio",
@@ -108,6 +108,5 @@ const OrdenServicio = sequelize.define(
     timestamps: false,
   }
 );
-
 
 export default OrdenServicio;
