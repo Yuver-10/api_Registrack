@@ -1,0 +1,828 @@
+================================================================================
+                    DOCUMENTACIÓN TÉCNICA API REGISTRACK
+================================================================================
+
+1. INTRODUCCIÓN DEL PROYECTO
+================================================================================
+
+API Registrack es una aplicación backend desarrollada en Node.js con Express que 
+proporciona servicios para la gestión integral de un sistema de registro y 
+seguimiento de servicios empresariales. La API está diseñada para manejar 
+múltiples entidades como usuarios, empleados, clientes, empresas, citas, 
+solicitudes, pagos y servicios.
+
+CARACTERÍSTICAS PRINCIPALES:
+- Arquitectura RESTful con Express.js
+- Autenticación y autorización basada en roles y permisos
+- Gestión de formularios dinámicos
+- Sistema de seguimiento de solicitudes
+- Integración con base de datos
+- Middleware de seguridad y manejo de errores
+- Soporte CORS para integración frontend
+
+TECNOLOGÍAS UTILIZADAS:
+- Node.js
+- Express.js
+- CORS
+- Middleware de autenticación personalizado
+- Sistema de roles y permisos
+- Base de datos (configuración en ./src/config/db.js)
+
+================================================================================
+
+2. COMPONENTES DEL API
+================================================================================
+
+2.1 ESTRUCTURA DE RUTAS:
+- /api/usuarios - Gestión de usuarios (7 endpoints: 4 públicos, 3 protegidos)
+- /api/servicios - Consulta de servicios (8 endpoints: 5 públicos, 3 protegidos)
+- /api/formularios-dinamicos - Validación de formularios (5 endpoints públicos)
+- /api/empleados - Gestión de empleados (7 endpoints protegidos)
+- /api/pagos - Gestión de pagos (5 endpoints protegidos)
+- /api/roles - Gestión de roles (6 endpoints protegidos)
+- /api/permisos - Gestión de permisos (5 endpoints protegidos)
+- /api/privilegios - Gestión de privilegios (5 endpoints protegidos)
+- /api/citas - Gestión de citas (5 endpoints protegidos)
+- /api/solicitudes - Gestión de solicitudes (7 endpoints: 1 público, 6 protegidos)
+- /api/solicitud-cita - Gestión de solicitudes de cita (4 endpoints protegidos)
+- /api/seguimiento - Sistema de seguimiento (6 endpoints protegidos)
+- /api/clientes - Gestión de clientes (6 endpoints protegidos)
+- /api/empresas - Gestión de empresas (2 endpoints protegidos)
+
+TOTAL: 78 endpoints (15 públicos, 63 protegidos)
+
+2.2 MIDDLEWARES IMPLEMENTADOS:
+- CORS: Habilitado para todas las rutas
+- Express.json(): Para parsing de JSON
+- authMiddleware: Autenticación de usuarios
+- roleMiddleware: Autorización basada en roles
+- errorHandler: Manejo centralizado de errores
+- notFoundHandler: Manejo de rutas no encontradas
+
+2.3 CONFIGURACIÓN:
+- Base de datos: Configuración en ./src/config/db.js
+- Middlewares de seguridad importados
+- Rutas organizadas por módulos
+
+================================================================================
+
+3. DETALLE DE REQUISITOS DEL INFORME TÉCNICO
+================================================================================
+
+3.1 REQUISITOS FUNCIONALES:
+- Autenticación y autorización de usuarios
+- Gestión CRUD de todas las entidades del sistema
+- Sistema de roles y permisos granular
+- Formularios dinámicos configurables
+- Seguimiento de solicitudes y citas
+- Gestión de pagos y servicios
+- API RESTful con endpoints documentados
+
+3.2 REQUISITOS NO FUNCIONALES:
+- Seguridad: Autenticación JWT y autorización por roles
+- Escalabilidad: Arquitectura modular y middleware reutilizable
+- Mantenibilidad: Código organizado en módulos separados
+- Disponibilidad: Manejo de errores centralizado
+- Compatibilidad: Soporte CORS para integración frontend
+
+3.3 REQUISITOS TÉCNICOS:
+- Node.js como runtime
+- Express.js como framework web
+- Base de datos configurada
+- Middleware de seguridad implementado
+- Manejo de errores robusto
+
+================================================================================
+
+4. DOCUMENTACIÓN DE ENDPOINTS
+================================================================================
+
+4.1 ENDPOINTS PÚBLICOS (Sin autenticación):
+
+=== USUARIOS (/api/usuarios) ===
+POST /api/usuarios/registrar
+- Descripción: Registrar nuevo usuario
+- Autenticación: No requerida
+- Body: { "nombre", "email", "password", "telefono" }
+
+POST /api/usuarios/login
+- Descripción: Iniciar sesión
+- Autenticación: No requerida
+- Body: { "email", "password" }
+
+POST /api/usuarios/forgot-password
+- Descripción: Solicitar recuperación de contraseña
+- Autenticación: No requerida
+- Body: { "email" }
+
+POST /api/usuarios/reset-password
+- Descripción: Restablecer contraseña
+- Autenticación: No requerida
+- Body: { "token", "newPassword" }
+
+=== SERVICIOS (/api/servicios) ===
+GET /api/servicios
+- Descripción: Obtener todos los servicios públicos
+- Autenticación: No requerida
+- Respuesta: Array de servicios activos
+
+GET /api/servicios/buscar
+- Descripción: Buscar servicios por nombre
+- Autenticación: No requerida
+- Query: ?nombre=valor
+
+GET /api/servicios/:id
+- Descripción: Obtener servicio por ID
+- Autenticación: No requerida
+
+GET /api/servicios/:id/detalle
+- Descripción: Obtener detalle completo del servicio
+- Autenticación: No requerida
+
+GET /api/servicios/:idServicio/procesos
+- Descripción: Obtener procesos de un servicio
+- Autenticación: No requerida
+
+=== FORMULARIOS DINÁMICOS (/api/formularios-dinamicos) ===
+POST /api/formularios-dinamicos/validar/:idServicio
+- Descripción: Validar orden de servicio
+- Autenticación: No requerida
+- Body: Datos del formulario
+
+GET /api/formularios-dinamicos/servicios
+- Descripción: Obtener servicios con validación
+- Autenticación: No requerida
+
+GET /api/formularios-dinamicos/verificar/:nombreServicio/:nombreCampo
+- Descripción: Verificar si un campo es obligatorio
+- Autenticación: No requerida
+
+GET /api/formularios-dinamicos/campos/:nombreServicio
+- Descripción: Obtener campos obligatorios de un servicio
+- Autenticación: No requerida
+
+GET /api/formularios-dinamicos/configuracion
+- Descripción: Obtener configuración de todos los servicios
+- Autenticación: No requerida
+
+=== SOLICITUDES (/api/solicitudes) ===
+POST /api/solicitudes/crear/:servicio
+- Descripción: Crear nueva solicitud (temporalmente sin auth)
+- Autenticación: No requerida (temporalmente)
+- Body: Datos de la solicitud
+
+4.2 ENDPOINTS PROTEGIDOS (Requieren autenticación):
+
+=== USUARIOS (/api/usuarios) ===
+GET /api/usuarios
+- Descripción: Obtener todos los usuarios
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+GET /api/usuarios/:id
+- Descripción: Obtener usuario por ID
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+PUT /api/usuarios/:id
+- Descripción: Actualizar usuario
+- Autenticación: Requerida
+- Roles: Todos los roles autenticados
+
+DELETE /api/usuarios/:id
+- Descripción: Eliminar usuario
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+PUT /api/usuarios/cambiar-estado/:id
+- Descripción: Cambiar estado de usuario
+- Autenticación: Requerida
+- Roles: administrador
+
+POST /api/usuarios/crear
+- Descripción: Crear usuario con rol específico
+- Autenticación: Requerida
+- Roles: administrador
+
+=== EMPLEADOS (/api/empleados) ===
+GET /api/empleados
+- Descripción: Obtener todos los empleados
+- Autenticación: Requerida
+- Roles: administrador
+
+GET /api/empleados/:id
+- Descripción: Obtener empleado por ID
+- Autenticación: Requerida
+- Roles: administrador
+
+POST /api/empleados
+- Descripción: Crear nuevo empleado
+- Autenticación: Requerida
+- Roles: administrador
+
+PUT /api/empleados/:id
+- Descripción: Actualizar empleado
+- Autenticación: Requerida
+- Roles: administrador
+
+PATCH /api/empleados/:id/estado
+- Descripción: Cambiar estado del empleado
+- Autenticación: Requerida
+- Roles: administrador
+
+DELETE /api/empleados/:id
+- Descripción: Eliminar empleado
+- Autenticación: Requerida
+- Roles: administrador
+
+GET /api/empleados/reporte/excel
+- Descripción: Descargar reporte de empleados en Excel
+- Autenticación: Requerida
+- Roles: administrador
+
+=== SERVICIOS (/api/servicios) ===
+GET /api/servicios/admin/todos
+- Descripción: Obtener todos los servicios (incluyendo ocultos)
+- Autenticación: Requerida
+- Roles: administrador
+
+PUT /api/servicios/:id
+- Descripción: Actualizar servicio
+- Autenticación: Requerida
+- Roles: administrador
+
+PATCH /api/servicios/:id/ocultar
+- Descripción: Ocultar servicio
+- Autenticación: Requerida
+- Roles: administrador
+
+PATCH /api/servicios/:id/publicar
+- Descripción: Publicar servicio
+- Autenticación: Requerida
+- Roles: administrador
+
+PUT /api/servicios/:idServicio/procesos
+- Descripción: Actualizar procesos de servicio
+- Autenticación: Requerida
+- Roles: administrador
+
+=== CLIENTES (/api/clientes) ===
+GET /api/clientes
+- Descripción: Obtener todos los clientes
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+GET /api/clientes/:id
+- Descripción: Obtener cliente por ID
+- Autenticación: Requerida
+- Roles: administrador, empleado, cliente
+
+POST /api/clientes
+- Descripción: Crear nuevo cliente
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+PUT /api/clientes/:id
+- Descripción: Actualizar cliente
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+DELETE /api/clientes/:id
+- Descripción: Eliminar cliente
+- Autenticación: Requerida
+- Roles: administrador
+
+GET /api/clientes/reporte/excel
+- Descripción: Descargar reporte de clientes en Excel
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+=== EMPRESAS (/api/empresas) ===
+GET /api/empresas/:id/clientes
+- Descripción: Obtener clientes de una empresa
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+GET /api/empresas/nit/:nit/clientes
+- Descripción: Obtener clientes de empresa por NIT
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+=== PAGOS (/api/pagos) ===
+GET /api/pagos
+- Descripción: Obtener todos los pagos
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+GET /api/pagos/:id
+- Descripción: Obtener pago por ID
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+POST /api/pagos
+- Descripción: Crear nuevo pago
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+GET /api/pagos/reporte/excel
+- Descripción: Descargar reporte general de pagos
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+GET /api/pagos/:id/comprobante
+- Descripción: Generar comprobante de pago (PDF)
+- Autenticación: Requerida
+- Roles: administrador, empleado, cliente
+
+=== ROLES (/api/roles) ===
+GET /api/roles
+- Descripción: Obtener todos los roles
+- Autenticación: Requerida
+- Roles: administrador
+
+POST /api/roles
+- Descripción: Crear nuevo rol
+- Autenticación: Requerida
+- Roles: administrador
+
+GET /api/roles/:id
+- Descripción: Obtener rol por ID
+- Autenticación: Requerida
+- Roles: administrador
+
+PUT /api/roles/:id
+- Descripción: Actualizar rol
+- Autenticación: Requerida
+- Roles: administrador
+
+PATCH /api/roles/:id/state
+- Descripción: Cambiar estado del rol
+- Autenticación: Requerida
+- Roles: administrador
+
+DELETE /api/roles/:id
+- Descripción: Eliminar rol
+- Autenticación: Requerida
+- Roles: administrador
+
+=== PERMISOS (/api/permisos) ===
+GET /api/permisos
+- Descripción: Obtener todos los permisos
+- Autenticación: Requerida
+- Roles: administrador
+
+POST /api/permisos
+- Descripción: Crear nuevo permiso
+- Autenticación: Requerida
+- Roles: administrador
+
+GET /api/permisos/:id
+- Descripción: Obtener permiso por ID
+- Autenticación: Requerida
+- Roles: administrador
+
+PUT /api/permisos/:id
+- Descripción: Actualizar permiso
+- Autenticación: Requerida
+- Roles: administrador
+
+DELETE /api/permisos/:id
+- Descripción: Eliminar permiso
+- Autenticación: Requerida
+- Roles: administrador
+
+=== PRIVILEGIOS (/api/privilegios) ===
+GET /api/privilegios
+- Descripción: Obtener todos los privilegios
+- Autenticación: Requerida
+- Roles: administrador
+
+POST /api/privilegios
+- Descripción: Crear nuevo privilegio
+- Autenticación: Requerida
+- Roles: administrador
+
+GET /api/privilegios/:id
+- Descripción: Obtener privilegio por ID
+- Autenticación: Requerida
+- Roles: administrador
+
+PUT /api/privilegios/:id
+- Descripción: Actualizar privilegio
+- Autenticación: Requerida
+- Roles: administrador
+
+DELETE /api/privilegios/:id
+- Descripción: Eliminar privilegio
+- Autenticación: Requerida
+- Roles: administrador
+
+=== CITAS (/api/citas) ===
+GET /api/citas
+- Descripción: Obtener todas las citas
+- Autenticación: Requerida
+- Roles: administrador, empleado, cliente
+
+POST /api/citas
+- Descripción: Crear nueva cita
+- Autenticación: Requerida
+- Roles: administrador, empleado, cliente
+
+PUT /api/citas/:id/reprogramar
+- Descripción: Reprogramar cita
+- Autenticación: Requerida
+- Roles: administrador, empleado, cliente
+
+PUT /api/citas/:id/anular
+- Descripción: Anular cita
+- Autenticación: Requerida
+- Roles: administrador, empleado, cliente
+
+GET /api/citas/reporte/excel
+- Descripción: Descargar reporte de citas en Excel
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+=== SOLICITUDES (/api/solicitudes) ===
+GET /api/solicitudes/mias
+- Descripción: Obtener mis solicitudes (cliente)
+- Autenticación: Requerida
+- Roles: cliente
+
+GET /api/solicitudes
+- Descripción: Obtener todas las solicitudes
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+GET /api/solicitudes/buscar
+- Descripción: Buscar solicitudes
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+GET /api/solicitudes/:id
+- Descripción: Obtener detalle de solicitud
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+PUT /api/solicitudes/anular/:id
+- Descripción: Anular solicitud
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+PUT /api/solicitudes/editar/:id
+- Descripción: Editar solicitud
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+=== SOLICITUDES DE CITA (/api/solicitud-cita) ===
+POST /api/solicitud-cita
+- Descripción: Crear solicitud de cita
+- Autenticación: Requerida
+- Roles: cliente
+
+GET /api/solicitud-cita/mis-solicitudes
+- Descripción: Ver mis solicitudes de cita
+- Autenticación: Requerida
+- Roles: cliente
+
+GET /api/solicitud-cita
+- Descripción: Obtener todas las solicitudes de cita
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+PUT /api/solicitud-cita/:id/gestionar
+- Descripción: Gestionar solicitud de cita
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+=== SEGUIMIENTO (/api/seguimiento) ===
+GET /api/seguimiento/historial/:idOrdenServicio
+- Descripción: Obtener historial de seguimiento
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+POST /api/seguimiento/crear
+- Descripción: Crear nuevo seguimiento
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+GET /api/seguimiento/:id
+- Descripción: Obtener seguimiento por ID
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+PUT /api/seguimiento/:id
+- Descripción: Actualizar seguimiento
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+DELETE /api/seguimiento/:id
+- Descripción: Eliminar seguimiento
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+GET /api/seguimiento/buscar/:idOrdenServicio
+- Descripción: Buscar seguimientos por título
+- Autenticación: Requerida
+- Roles: administrador, empleado
+
+================================================================================
+
+4.3 EJEMPLOS DE RESPUESTAS PARA ENDPOINTS CLAVE:
+
+=== RESPUESTA DE LOGIN ===
+POST /api/usuarios/login
+Respuesta exitosa (200):
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": 1,
+      "nombre": "Juan Pérez",
+      "email": "juan@example.com",
+      "rol": "cliente"
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  },
+  "message": "Login exitoso"
+}
+
+=== RESPUESTA DE SERVICIOS ===
+GET /api/servicios
+Respuesta exitosa (200):
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "nombre": "Registro de Empresa",
+      "descripcion": "Servicio para registro de nuevas empresas",
+      "precio": 150.00,
+      "activo": true,
+      "procesos": ["Documentación", "Revisión", "Aprobación"]
+    }
+  ],
+  "message": "Servicios obtenidos exitosamente"
+}
+
+=== RESPUESTA DE CREAR SOLICITUD ===
+POST /api/solicitudes/crear/registro-empresa
+Respuesta exitosa (201):
+{
+  "success": true,
+  "data": {
+    "id": 123,
+    "numeroSolicitud": "SOL-2024-001",
+    "servicio": "Registro de Empresa",
+    "estado": "pendiente",
+    "fechaCreacion": "2024-01-15T10:30:00.000Z",
+    "cliente": {
+      "nombre": "Empresa ABC",
+      "email": "contacto@empresaabc.com"
+    }
+  },
+  "message": "Solicitud creada exitosamente"
+}
+
+=== RESPUESTA DE ERROR ===
+Respuesta de error (400):
+{
+  "success": false,
+  "error": "Datos de entrada inválidos",
+  "details": [
+    {
+      "field": "email",
+      "message": "El email es requerido"
+    }
+  ]
+}
+
+=== RESPUESTA DE NO AUTORIZADO ===
+Respuesta de error (401):
+{
+  "success": false,
+  "error": "Token de autenticación inválido o faltante",
+  "message": "Acceso denegado"
+}
+
+=== RESPUESTA DE NO ENCONTRADO ===
+Respuesta de error (404):
+{
+  "success": false,
+  "error": "Recurso no encontrado",
+  "message": "El servicio solicitado no existe"
+}
+
+================================================================================
+
+5. INFORME DE PRUEBAS ENDPOINTS
+================================================================================
+
+5.1 METODOLOGÍA DE PRUEBAS:
+- Pruebas de endpoints públicos sin autenticación
+- Pruebas de endpoints protegidos con tokens válidos
+- Pruebas de manejo de errores
+- Pruebas de validación de datos
+- Pruebas de autorización por roles
+
+5.2 HERRAMIENTAS RECOMENDADAS:
+- Postman para pruebas manuales
+- Jest para pruebas automatizadas
+- Thunder Client (extensión VS Code)
+- curl para pruebas desde terminal
+
+5.3 CASOS DE PRUEBA SUGERIDOS:
+
+CASO 1: Prueba de endpoint público
+- Endpoint: GET /api/servicios
+- Método: GET
+- Headers: Ninguno
+- Resultado esperado: 200 OK con lista de servicios
+
+CASO 2: Prueba de endpoint protegido sin autenticación
+- Endpoint: GET /api/empleados
+- Método: GET
+- Headers: Ninguno
+- Resultado esperado: 401 Unauthorized
+
+CASO 3: Prueba de endpoint protegido con autenticación
+- Endpoint: GET /api/empleados
+- Método: GET
+- Headers: Authorization: Bearer <token_válido>
+- Resultado esperado: 200 OK con lista de empleados
+
+CASO 4: Prueba de creación de recurso
+- Endpoint: POST /api/clientes
+- Método: POST
+- Headers: Authorization: Bearer <token_válido>
+- Body: {"nombre": "Cliente Test", "email": "test@example.com"}
+- Resultado esperado: 201 Created
+
+CASO 5: Prueba de ruta no encontrada
+- Endpoint: GET /api/ruta-inexistente
+- Método: GET
+- Resultado esperado: 404 Not Found
+
+================================================================================
+
+6. PRUEBA OBTENER TODOS LOS PRODUCTOS/SERVICIOS
+================================================================================
+
+6.1 ENDPOINT PARA OBTENER SERVICIOS:
+GET /api/servicios
+
+6.2 EJEMPLO DE PETICIÓN:
+curl -X GET http://localhost:3000/api/servicios \
+  -H "Content-Type: application/json"
+
+6.3 RESPUESTA ESPERADA:
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "nombre": "Servicio 1",
+      "descripcion": "Descripción del servicio 1",
+      "precio": 100.00,
+      "activo": true
+    },
+    {
+      "id": 2,
+      "nombre": "Servicio 2",
+      "descripcion": "Descripción del servicio 2",
+      "precio": 150.00,
+      "activo": true
+    }
+  ],
+  "message": "Servicios obtenidos exitosamente"
+}
+
+6.4 CÓDIGOS DE RESPUESTA:
+- 200: Servicios obtenidos exitosamente
+- 500: Error interno del servidor
+
+================================================================================
+
+7. PRUEBA CREAR UN NUEVO SERVICIO/PRODUCTO
+================================================================================
+
+7.1 ENDPOINT PARA CREAR SERVICIO:
+POST /api/servicios
+
+7.2 EJEMPLO DE PETICIÓN:
+curl -X POST http://localhost:3000/api/servicios \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "nombre": "Nuevo Servicio",
+    "descripcion": "Descripción del nuevo servicio",
+    "precio": 200.00,
+    "activo": true
+  }'
+
+7.3 RESPUESTA ESPERADA:
+{
+  "success": true,
+  "data": {
+    "id": 3,
+    "nombre": "Nuevo Servicio",
+    "descripcion": "Descripción del nuevo servicio",
+    "precio": 200.00,
+    "activo": true,
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "updatedAt": "2024-01-15T10:30:00.000Z"
+  },
+  "message": "Servicio creado exitosamente"
+}
+
+7.4 CÓDIGOS DE RESPUESTA:
+- 201: Servicio creado exitosamente
+- 400: Datos de entrada inválidos
+- 401: No autorizado (token inválido o faltante)
+- 500: Error interno del servidor
+
+7.5 VALIDACIONES RECOMENDADAS:
+- Nombre: Requerido, mínimo 3 caracteres
+- Descripción: Requerida, mínimo 10 caracteres
+- Precio: Requerido, debe ser un número positivo
+- Activo: Booleano, por defecto true
+
+================================================================================
+
+8. RESUMEN ESTADÍSTICO DE LA API
+================================================================================
+
+8.1 ESTADÍSTICAS GENERALES:
+- Total de endpoints: 78
+- Endpoints públicos: 15 (19.2%)
+- Endpoints protegidos: 63 (80.8%)
+- Módulos implementados: 14
+- Métodos HTTP utilizados: GET, POST, PUT, PATCH, DELETE
+
+8.2 DISTRIBUCIÓN POR MÓDULOS:
+- Usuarios: 7 endpoints (9.0%)
+- Servicios: 8 endpoints (10.3%)
+- Formularios Dinámicos: 5 endpoints (6.4%)
+- Empleados: 7 endpoints (9.0%)
+- Pagos: 5 endpoints (6.4%)
+- Roles: 6 endpoints (7.7%)
+- Permisos: 5 endpoints (6.4%)
+- Privilegios: 5 endpoints (6.4%)
+- Citas: 5 endpoints (6.4%)
+- Solicitudes: 7 endpoints (9.0%)
+- Solicitudes de Cita: 4 endpoints (5.1%)
+- Seguimiento: 6 endpoints (7.7%)
+- Clientes: 6 endpoints (7.7%)
+- Empresas: 2 endpoints (2.6%)
+
+8.3 DISTRIBUCIÓN POR ROLES:
+- Solo Administrador: 35 endpoints (44.9%)
+- Administrador + Empleado: 20 endpoints (25.6%)
+- Todos los roles autenticados: 8 endpoints (10.3%)
+- Públicos (sin autenticación): 15 endpoints (19.2%)
+
+8.4 FUNCIONALIDADES PRINCIPALES:
+- Sistema de autenticación y autorización
+- Gestión CRUD completa de entidades
+- Sistema de roles y permisos granular
+- Formularios dinámicos configurables
+- Sistema de seguimiento de solicitudes
+- Generación de reportes en Excel
+- Generación de comprobantes en PDF
+- Validación de datos robusta
+
+================================================================================
+
+9. CONSIDERACIONES GENERALES
+================================================================================
+
+9.1 SEGURIDAD:
+- Implementar rate limiting para prevenir abuso
+- Validar y sanitizar todas las entradas
+- Usar HTTPS en producción
+- Implementar logging de seguridad
+
+9.2 RENDIMIENTO:
+- Implementar caché para consultas frecuentes
+- Optimizar consultas a la base de datos
+- Usar paginación para listas grandes
+- Implementar compresión de respuestas
+
+9.3 MONITOREO:
+- Implementar logging estructurado
+- Monitorear métricas de rendimiento
+- Alertas para errores críticos
+- Dashboard de salud de la API
+
+9.4 DOCUMENTACIÓN ADICIONAL:
+- Swagger/OpenAPI para documentación interactiva
+- Ejemplos de integración
+- Guías de migración
+- Changelog de versiones
+
+================================================================================
+
+FECHA DE CREACIÓN: Enero 2024
+VERSIÓN: 1.0
+AUTOR: Equipo de Desarrollo API Registrack
+================================================================================
