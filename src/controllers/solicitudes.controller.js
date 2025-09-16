@@ -1,5 +1,6 @@
 import { SolicitudesService } from "../services/solicitudes.service.js";
 import { OrdenServicio, Servicio } from "../models/orden_servico_Servicio.js";
+import Cliente from "../models/Cliente.js";
 
 const solicitudesService = new SolicitudesService();
 
@@ -262,9 +263,28 @@ export const crearSolicitud = async (req, res) => {
       return mapeo;
     };
 
+    // Resolver id_cliente real (FK hacia clientes.id_cliente)
+    let idClienteReal = req.body.id_cliente;
+
+    if (!idClienteReal && req.body.id_usuario_cliente) {
+      const clienteByUsuario = await Cliente.findOne({ where: { id_usuario: req.body.id_usuario_cliente } });
+      if (!clienteByUsuario) {
+        return res.status(400).json({ mensaje: "El usuario indicado no tiene cliente asociado" });
+      }
+      idClienteReal = clienteByUsuario.id_cliente;
+    }
+
+    if (!idClienteReal) {
+      const clienteActual = await Cliente.findOne({ where: { id_usuario: req.user.id_usuario } });
+      if (!clienteActual) {
+        return res.status(400).json({ mensaje: "Tu usuario no tiene cliente asociado" });
+      }
+      idClienteReal = clienteActual.id_cliente;
+    }
+
     // Crear la orden de servicio
     const datosOrdenServicio = {
-      id_cliente: req.user.id_usuario, // Obtener del token de autenticación
+      id_cliente: idClienteReal,
       id_servicio: servicio.id_servicio,
       ...mapearCamposServicio(req.body, servicioEncontrado, req.user.role),
     };

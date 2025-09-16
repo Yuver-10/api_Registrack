@@ -15,6 +15,11 @@ import SolicitudCitaRoutes from "./src/routes/solicitud_cita.routes.js";
 import ClienteRoutes from "./src/routes/cliente.routes.js";
 import EmpresaRoutes from "./src/routes/empresa.routes.js";
 import FormularioDinamicoRoutes from "./src/routes/formularioDinamico.routes.js";
+import TipoArchivoRoutes from "./src/routes/tipoArchivo.routes.js";
+import ArchivoRoutes from "./src/routes/archivo.routes.js";
+import DetalleOrdenRoutes from "./src/routes/detalleOrden.routes.js";
+import DetalleProcesoRoutes from "./src/routes/detalleProceso.routes.js";
+import ServicioProcesoRoutes from "./src/routes/servicioProceso.routes.js";
 
 import {
   errorHandler,
@@ -53,6 +58,11 @@ app.use("/api/solicitud-cita", authMiddleware, SolicitudCitaRoutes);
 app.use("/api/seguimiento", authMiddleware, SeguimientoRoutes);
 app.use("/api/clientes", authMiddleware, ClienteRoutes);
 app.use("/api/empresas", authMiddleware, EmpresaRoutes);
+app.use("/api/tipo-archivos", TipoArchivoRoutes);
+app.use("/api/archivos", ArchivoRoutes);
+app.use("/api/detalles-orden", DetalleOrdenRoutes);
+app.use("/api/detalles-procesos", DetalleProcesoRoutes);
+app.use("/api/servicios-procesos", ServicioProcesoRoutes);
 
 // Middleware para manejar rutas no encontradas (debe ir antes del error handler)
 app.use(notFoundHandler);

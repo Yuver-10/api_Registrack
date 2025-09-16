@@ -10,7 +10,17 @@ const Rol = sequelize.define("Rol", {
   },
   nombre: {
     type: DataTypes.STRING(50),
-    allowNull: false
+    allowNull: false,
+    unique: true,
+  },
+  descripcion: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  estado: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true,
   }
 }, {
   tableName: "roles",
