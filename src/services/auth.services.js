@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { createUser, findUserByEmail, findRoleByName,  } from "../repositories/auth.repository.js";
+import { createUser, findUserByEmail, findRoleByName, findUserByResetToken } from "../repositories/auth.repository.js";
 import { Role as Rol } from "../models/index.js";
 import { sendPasswordResetEmail, generateResetCode } from "./email.service.js";
 
@@ -75,7 +75,7 @@ export const handleForgotPassword = async (correo) => {
   // Expira en 15 minutos
   const expirationDate = new Date(Date.now() + 15 * 60 * 1000);
 
-  usuario.resetPasswordCode = resetCode;
+  usuario.resetPasswordToken = resetCode;
   usuario.resetPasswordExpires = expirationDate;
   await usuario.save();
 
@@ -102,7 +102,7 @@ export const handleResetPassword = async (code, newPassword) => {
 
   // Actualizar contraseña y limpiar campos del código
   usuario.contrasena = hashedPassword;
-  usuario.resetPasswordCode = null;
+  usuario.resetPasswordToken = null;
   usuario.resetPasswordExpires = null;
   await usuario.save();
 };

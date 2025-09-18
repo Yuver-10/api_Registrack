@@ -1,0 +1,290 @@
+# API Registrack
+
+![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white) ![Express](https://img.shields.io/badge/Express-5-blue?logo=express&logoColor=white) ![Sequelize](https://img.shields.io/badge/Sequelize-6-3C76A1?logo=sequelize&logoColor=white) ![MySQL](https://img.shields.io/badge/MySQL-8-blue?logo=mysql&logoColor=white) ![JWT](https://img.shields.io/badge/JWT-Auth-black?logo=jsonwebtokens) ![License](https://img.shields.io/badge/License-TBD-lightgrey)
+
+## Tabla de contenidos
+- [Tecnologías principales](#tecnologías-principales)
+- [Requisitos](#requisitos)
+- [Estructura del proyecto](#estructura-del-proyecto-resumen)
+- [Instalación y ejecución local](#instalación-y-ejecución-local)
+- [Variables de entorno](#variables-de-entorno-env)
+- [Autenticación y autorización](#autenticación-y-autorización)
+- [Autenticación JWT (detalle)](#autenticación-jwt-detalle)
+- [Endpoints principales (resumen)](#endpoints-principales-resumen)
+- [Ejemplos de uso (cURL)](#ejemplos-de-uso-curl)
+- [Manejo de errores y validaciones](#manejo-de-errores-y-validaciones)
+- [Despliegue](#despliegue-resumen)
+- [Pruebas](#pruebas)
+- [Seguridad](#seguridad)
+- [Licencia](#licencia)
+
+Plataforma API REST para la gestión de usuarios, roles y permisos, servicios y procesos, solicitudes, citas, seguimiento, archivos y más. Construida con Node.js (ESM), Express, Sequelize y MySQL, con autenticación JWT y validaciones.
+
+## Tecnologías principales
+- Node.js + Express 5
+- Sequelize 6 + MySQL2
+- JWT (jsonwebtoken) y bcryptjs
+- CORS, dotenv, express-validator
+- ExcelJS y PDFKit (reportes/exportaciones)
+- Nodemailer (recuperación de contraseña)
+
+## Requisitos
+- Node.js (LTS recomendado)
+- MySQL (8.x recomendado) y cliente de línea de comandos disponible en PATH (para los scripts de setup)
+- Variables de entorno configuradas (.env en la raíz del proyecto)
+
+## Estructura del proyecto (resumen)
+- app.js: inicializa Express, middlewares globales y monta routers
+- src/config/db.js: configuración de Sequelize y carga de .env
+- src/middlewares/
+  - auth.middleware.js: verificación de JWT (Authorization: Bearer <token>)
+  - role.middleware.js: autorización basada en roles (administrador, empleado, cliente)
+  - error.middleware.js: notFoundHandler y errorHandler
+- src/routes/*: definición de rutas de la API
+- src/controllers/*: lógica de controladores
+- src/services/*: lógica de negocio y orquestación
+- src/models/*: modelos y asociaciones de Sequelize
+- scripts/: utilidades de instalación (setup-database.bat/.sh)
+- database/seed-data.sql: datos de ejemplo (opcional)
+
+## Instalación y ejecución local
+1) Clonar el repositorio y entrar al proyecto
+2) Instalar dependencias
+   - npm install
+3) Crear archivo .env en la raíz (misma carpeta donde está app.js y package.json)
+4) Inicializar base de datos (elige una opción)
+   - Opción rápida (Windows): scripts\\setup-database.bat
+   - Opción rápida (Linux/Mac): bash scripts/setup-database.sh
+   - Opción manual:
+     - npm run sync-db
+     - npm run seed-roles
+     - npm run create-admin
+5) Levantar el servidor
+   - Desarrollo: npm run dev
+   - Producción: npm start
+
+Notas:
+- Los scripts start/dev ejecutan server.js en la raíz del proyecto. Configura la variable PORT en .env si deseas un puerto específico.
+- Los scripts de setup requieren que el cliente mysql esté disponible en PATH.
+
+## Variables de entorno (.env)
+Ubicación: archivo .env en la raíz. db.js las carga desde "./.env".
+ 
+Ejemplo:
+PORT=3000
+DB_NAME=registrack_db
+DB_USER=tu_usuario
+DB_PASS=tu_password
+DB_HOST=localhost
+DB_PORT=3306
+JWT_SECRET=una_clave_segura_para_jwt
+EMAIL_USER=tu_correo@gmail.com
+EMAIL_PASS=tu_password_de_aplicacion_gmail
+ 
+Sugerencia: ya tienes un archivo de ejemplo listo (.env.example). Cópialo como .env y ajusta los valores.
+
+Descripción de variables:
+- PORT: Puerto HTTP en el que se inicia la API.
+- DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT: Credenciales y configuración de la base de datos MySQL.
+- JWT_SECRET: Clave secreta para firmar los JWT. Usa una cadena larga y aleatoria.
+- EMAIL_USER, EMAIL_PASS: Credenciales del remitente para nodemailer (recomendado: contraseña de aplicación de Gmail).
+
+## Scripts disponibles (package.json)
+- npm run dev: nodemon server.js (modo desarrollo)
+- npm start: node server.js (modo producción)
+- npm run sync-db: sincroniza modelos con la BD
+- npm run seed-roles: inserta roles iniciales (administrador, empleado, cliente)
+- npm run create-admin: crea un usuario administrador por defecto
+
+Credenciales iniciales (create-admin):
+- Email: admin@registrack.com
+- Password: Admin123!
+Cámbialas inmediatamente en producción.
+
+## Autenticación y autorización
+- Autenticación: JWT via cabecera Authorization: Bearer <token>
+- Secreto de firma: JWT_SECRET en .env
+- Autorización por roles: role.middleware restringe acceso a ["administrador", "empleado", "cliente"] según endpoint
+
+Roles (resumen):
+- Administrador: gestión de usuarios, servicios, procesos, tipos de archivo, listados completos.
+- Empleado: gestión operativa (procesos, citas, seguimiento) según permisos otorgados.
+- Cliente: acceso a datos propios (solicitudes/citas/archivos) y consulta pública de servicios.
+
+Flujo típico:
+1) Login: POST /api/usuarios/login -> devuelve token JWT
+2) Usar el token en Authorization para llamar a endpoints protegidos
+
+Ejemplo cURL (login):
+curl -X POST "http://localhost:3000/api/usuarios/login" \
+  -H "Content-Type: application/json" \
+  -d "{\"correo\": \"admin@registrack.com\", \"contrasena\": \"Admin123!\"}"
+
+Ejemplo cURL (endpoint protegido):
+curl -X GET "http://localhost:3000/api/servicios/admin/todos" \
+  -H "Authorization: Bearer <TU_TOKEN>"
+
+## Endpoints principales (resumen)
+Prefijo base: /api
+
+- Usuarios (/api/usuarios)
+  - POST /registrar (registro)
+  - POST /login (login)
+  - POST /forgot-password (enviar código/link)
+  - POST /reset-password (restablecer)
+  - GET /, GET /:id, DELETE /:id, PUT /:id (protegidos: admin/empleado)
+  - POST /crear (crear usuario por admin)
+
+- Servicios (/api/servicios)
+  - Público: GET /, GET /buscar, GET /:id, GET /:id/detalle
+  - Solo admin: GET /admin/todos, PUT /:id, PATCH /:id/ocultar, PATCH /:id/publicar
+  - Procesos del servicio: GET /:idServicio/procesos (consulta), PUT /:idServicio/procesos (admin)
+
+- Servicios-Procesos (/api/servicios-procesos)
+  - GET /:idServicio/procesos (auth, administrador/empleado/cliente)
+  - POST /:idServicio/procesos (auth, administrador/empleado)
+  - DELETE /:idServicio/procesos/:idProceso (auth, administrador/empleado)
+
+- Solicitudes (/api/solicitudes)
+  - POST /crear/:servicio (validación dinámica por tipo de servicio)
+  - GET /mias (auth, cliente)
+  - GET / (auth, administrador/empleado)
+
+- Citas (/api/citas)
+  - GET /, POST /, PUT /:id/reprogramar, PUT /:id/anular (auth); GET /reporte/excel (admin/empleado)
+
+- Seguimiento (/api/seguimiento)
+  - GET /historial/:idOrdenServicio, POST /crear, GET /:id, PUT /:id, DELETE /:id, GET /buscar/:idOrdenServicio (auth, admin/empleado)
+
+- Archivos (/api/archivos)
+  - POST /upload, GET /:id/download, GET /cliente/:idCliente (auth, admin/empleado/cliente)
+
+- Tipos de Archivo (/api/tipo-archivos)
+  - GET / (admin/empleado), POST / (admin/empleado), PUT /:id (admin/empleado), DELETE /:id (admin)
+
+- Empresas (/api/empresas)
+  - GET /:id/clientes, GET /nit/:nit/clientes (auth aplicado a nivel app)
+
+- Otros routers montados: pagos, empleados, roles, permisos, privilegios, detalles-orden, detalles-procesos
+
+Para un listado detallado de rutas, consulta los archivos en src/routes/*.
+
+## Manejo de errores y validaciones
+- notFoundHandler y errorHandler globales (error.middleware.js)
+- Validaciones con express-validator en distintos endpoints
+- Respuestas consistentes con códigos HTTP adecuados (400, 401, 403, 404, 500)
+
+## Despliegue (resumen)
+- Configurar variables de entorno (.env)
+- Asegurar conectividad a MySQL
+- Ejecutar sincronización y seeds (sync-db, seed-roles, create-admin)
+- Iniciar con npm start (server.js usa PORT definido en .env)
+
+## Pruebas
+- Actualmente no hay pruebas automatizadas definidas (script test placeholder)
+
+## Seguridad
+- No compartas tu JWT_SECRET ni credenciales en repositorios públicos
+- Cambia la contraseña por defecto del administrador tras la instalación
+
+## Autenticación JWT (detalle)
+- Emisión del token en login con expiración de 1 hora (expiresIn: "1h"). Payload incluye: id_usuario y rol.
+- Usa el encabezado: Authorization: Bearer <token>
+- No hay refresh tokens implementados actualmente.
+
+## Ejemplos de uso (cURL)
+
+Autenticación
+1) Registro de usuario
+curl -X POST "http://localhost:3000/api/usuarios/registrar" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tipo_documento": "CC",
+    "documento": "12345678",
+    "nombre": "Juan",
+    "apellido": "Pérez",
+    "correo": "juan@example.com",
+    "contrasena": "Password1!"
+  }'
+
+Respuesta (200/201): { "mensaje": "Usuario registrado correctamente", "usuario": { ... } }
+
+2) Login
+curl -X POST "http://localhost:3000/api/usuarios/login" \
+  -H "Content-Type: application/json" \
+  -d '{ "correo": "admin@registrack.com", "contrasena": "Admin123!" }'
+
+Respuesta (200): { "usuario": { ... }, "token": "<JWT>" }
+
+3) Olvidé mi contraseña
+curl -X POST "http://localhost:3000/api/usuarios/forgot-password" \
+  -H "Content-Type: application/json" \
+  -d '{ "correo": "juan@example.com" }'
+
+Respuesta (200): { "mensaje": "Si tu correo está registrado, recibirás un enlace para restablecer tu contraseña." }
+
+4) Restablecer contraseña (con código de 6 dígitos enviado por email)
+curl -X POST "http://localhost:3000/api/usuarios/reset-password" \
+  -H "Content-Type: application/json" \
+  -d '{ "token": "123456", "newPassword": "NuevaPass1!" }'
+
+Respuesta (200): { "mensaje": "Tu contraseña ha sido restablecida exitosamente." }
+
+Servicios
+1) Listado público de servicios
+curl -X GET "http://localhost:3000/api/servicios"
+
+2) Ver todos (admin)
+curl -X GET "http://localhost:3000/api/servicios/admin/todos" \
+  -H "Authorization: Bearer <JWT_ADMIN>"
+
+Servicios - Procesos
+1) Consultar procesos de un servicio (público en /api/servicios)
+curl -X GET "http://localhost:3000/api/servicios/1/procesos"
+
+2) Consultar/gestionar (rutas dedicadas con auth: /api/servicios-procesos)
+curl -X GET "http://localhost:3000/api/servicios-procesos/1/procesos" \
+  -H "Authorization: Bearer <JWT>"
+
+Archivos
+1) Descargar archivo por id
+curl -X GET "http://localhost:3000/api/archivos/10/download" \
+  -H "Authorization: Bearer <JWT>"
+
+Citas
+1) Obtener citas
+curl -X GET "http://localhost:3000/api/citas" \
+  -H "Authorization: Bearer <JWT>"
+
+Seguimiento
+1) Historial de seguimiento por orden
+curl -X GET "http://localhost:3000/api/seguimiento/historial/100" \
+  -H "Authorization: Bearer <JWT>"
+
+Notas
+- Sustituye <JWT> por el token obtenido en login.
+- En endpoints protegidos, asegúrate de enviar Authorization: Bearer <token>.
+- Consulta endpoints.txt y src/routes/* para ver parámetros adicionales y filtros disponibles.
+
+## Punto de entrada (server.js / app.js)
+- Los scripts "dev" y "start" del package.json apuntan a server.js. Si no existe en tu copia:
+  - Opción A: crea server.js que importe app desde app.js y llame a app.listen(PORT).
+  - Opción B: modifica los scripts para ejecutar app.js directamente (node app.js / nodemon app.js).
+- El campo "main" del package.json es "index.js"; es opcional para ejecución por scripts, puedes alinearlo al punto de entrada real.
+
+## Solución de problemas
+- Error ECONNREFUSED a MySQL: verifica DB_HOST/PORT, credenciales, y que el servicio MySQL esté iniciado.
+- Authentication failed (email): usa una contraseña de aplicación (Gmail) y habilita EMAIL_USER/EMAIL_PASS en .env.
+- 401/403 en endpoints protegidos: confirma que envías Authorization: Bearer <token> y que el rol tiene permisos.
+- Error de sincronización de modelos: ejecuta npm run sync-db y revisa logs de Sequelize para conflictos de esquema.
+- Puerto ocupado: cambia PORT en .env o libera el puerto.
+
+## Preguntas frecuentes (FAQ)
+- ¿Cuál es la expiración del JWT? 1 hora.
+- ¿Qué campos incluye el JWT? id_usuario y rol.
+- ¿Hay refresh tokens? No por ahora.
+- ¿Dónde están las rutas? En src/routes/* y un resumen en endpoints.txt.
+- ¿Cómo creo un admin? npm run create-admin (usa credenciales por defecto, cámbialas luego).
+
+## Licencia
+Actualmente este repositorio no incluye un archivo de licencia. Se recomienda agregar LICENSE en la raíz (por ejemplo, MIT, Apache-2.0 o GPL-3.0). Hasta que no se añada una licencia explícita, no se otorgan permisos de uso/redistribución más allá de lo permitido por la ley aplicable.
