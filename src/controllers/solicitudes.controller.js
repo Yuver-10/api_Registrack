@@ -1,14 +1,10 @@
 import { SolicitudesService } from "../services/solicitudes.service.js";
 import { OrdenServicio, Servicio } from "../models/orden_servico_Servicio.js";
 import Cliente from "../models/Cliente.js";
+import Empresa from "../models/Empresa.js";
+import { Op } from "sequelize";
 
 const solicitudesService = new SolicitudesService();
-
-// Estados válidos para órdenes de servicio (según la base de datos):
-// - "Pendiente": Estado inicial de la orden
-// - "Aprobada": Orden aprobada por administrador
-// - "Rechazada": Orden rechazada por administrador
-// - "Anulado": Orden anulada
 
 // Configuración de campos requeridos por servicio
 const requiredFields = {
@@ -111,52 +107,102 @@ const requiredFields = {
     "nombre_marca",
     "clase_niza_actual",
     "nuevas_clases_niza",
-    "descripcion_nuevos_productos_servicios",
-    "soportes",
-  ],
-  "Respuesta a oposición": [
-    "nombre_titular_que_responde",
-    "documento_nit_titular",
-    "direccion",
-    "ciudad",
-    "pais",
-    "correo",
-    "telefono",
-    "numero_solicitud_registro",
-    "clase_niza",
-    "argumentos_respuesta",
+    "descripcion_ampliacion",
     "soportes",
   ],
 };
 
-// Función principal para crear solicitud dinámica
+// Función para normalizar texto de forma robusta
+const normalizarTexto = (texto) => {
+  if (!texto || typeof texto !== 'string') return '';
+  
+  return texto
+    .toLowerCase()
+    .replace(/[ó]/g, "o")
+    .replace(/[í]/g, "i")
+    .replace(/[á]/g, "a")
+    .replace(/[é]/g, "e")
+    .replace(/[ú]/g, "u")
+    .replace(/[ñ]/g, "n")
+    .replace(/\s+/g, ' ') // Normalizar espacios múltiples
+    .trim();
+};
+
+// Función para buscar servicio de forma robusta
+const buscarServicio = (nombreServicio, serviciosDisponibles) => {
+  console.log(`🔍 Buscando servicio: "${nombreServicio}"`);
+  console.log(`🔍 Servicios disponibles:`, Object.keys(serviciosDisponibles));
+  
+  const nombreNormalizado = normalizarTexto(nombreServicio);
+  console.log(`🔍 Nombre normalizado: "${nombreNormalizado}"`);
+  
+  // Primero intentar búsqueda exacta
+  for (const [key, value] of Object.entries(serviciosDisponibles)) {
+    const keyNormalizada = normalizarTexto(key);
+    console.log(`🔍 Comparando exacta: "${keyNormalizada}" vs "${nombreNormalizado}"`);
+    
+    if (keyNormalizada === nombreNormalizado) {
+      console.log(`✅ Encontrado por búsqueda exacta: "${key}"`);
+      return key;
+    }
+  }
+  
+  // Si no se encuentra, intentar búsqueda parcial
+  for (const [key, value] of Object.entries(serviciosDisponibles)) {
+    const keyNormalizada = normalizarTexto(key);
+    
+    // Buscar si el nombre del servicio está contenido en la clave
+    if (keyNormalizada.includes(nombreNormalizado) || nombreNormalizado.includes(keyNormalizada)) {
+      console.log(`✅ Encontrado por búsqueda parcial: "${key}"`);
+      return key;
+    }
+  }
+  
+  console.log(`❌ Servicio no encontrado`);
+  return null;
+};
+
+// Función principal para crear solicitud
 export const crearSolicitud = async (req, res) => {
   try {
-    // Obtener el nombreServicio de los parámetros de la URL
-    let nombreServicio = req.params.servicio;
-
-    // Mock user temporal para pruebas
+    console.log('🚀 Iniciando creación de solicitud...');
+    
+    // Verificar autenticación
+    console.log('🔍 Debug - req.user:', req.user);
+    console.log('🔍 Debug - req.user type:', typeof req.user);
+    console.log('🔍 Debug - req.user keys:', req.user ? Object.keys(req.user) : 'req.user is null/undefined');
+    
     if (!req.user) {
-      req.user = { id_usuario: 1, role: "cliente" };
+      console.log('❌ Usuario no autenticado');
+      return res.status(401).json({
+        mensaje: "Usuario no autenticado",
+        error: "Se requiere autenticación para crear solicitudes"
+      });
     }
 
-    // Decodificar URL y limpiar espacios
+    console.log('✅ Usuario autenticado:', req.user.id, req.user.role);
+    console.log('🔍 Debug - req.user.id:', req.user.id);
+    console.log('🔍 Debug - req.user.role:', req.user.role);
+
+    // Obtener y decodificar el nombre del servicio
+    let nombreServicio = req.params.servicio;
+    if (!nombreServicio) {
+      console.log('❌ Nombre de servicio no proporcionado');
+      return res.status(400).json({
+        mensaje: "Nombre de servicio requerido",
+        error: "El parámetro 'servicio' es obligatorio"
+      });
+    }
+
+    // Decodificar URL
     nombreServicio = decodeURIComponent(nombreServicio).trim();
+    console.log('🔍 Servicio decodificado:', nombreServicio);
 
-    // Buscar el servicio de forma insensible a mayúsculas/minúsculas y caracteres especiales
-    const servicioEncontrado = Object.keys(requiredFields).find((key) => {
-      const keyNormalized = key
-        .toLowerCase()
-        .replace(/[ó]/g, "o")
-        .replace(/[í]/g, "i");
-      const nombreNormalized = nombreServicio
-        .toLowerCase()
-        .replace(/[ó]/g, "o")
-        .replace(/[í]/g, "i");
-      return keyNormalized === nombreNormalized;
-    });
-
+    // Buscar el servicio
+    const servicioEncontrado = buscarServicio(nombreServicio, requiredFields);
+    
     if (!servicioEncontrado) {
+      console.log('❌ Servicio no encontrado');
       return res.status(404).json({
         mensaje: "Servicio no encontrado",
         servicio: nombreServicio,
@@ -164,12 +210,16 @@ export const crearSolicitud = async (req, res) => {
       });
     }
 
+    console.log('✅ Servicio encontrado:', servicioEncontrado);
+
     // Determinar campos requeridos según el rol del usuario
     let camposRequeridos = [...requiredFields[servicioEncontrado]];
+    console.log('📋 Campos requeridos:', camposRequeridos);
 
     // Si es cliente, agregar campos de pago como obligatorios
     if (req.user.role === "cliente") {
       camposRequeridos.push("metodo_pago", "monto_pago");
+      console.log('💰 Campos de pago agregados para cliente');
     }
 
     // Validar campos requeridos en el body
@@ -178,179 +228,143 @@ export const crearSolicitud = async (req, res) => {
     );
 
     if (camposFaltantes.length > 0) {
+      console.log('❌ Campos faltantes:', camposFaltantes);
       return res.status(400).json({
-        mensaje: "Faltan campos requeridos para este servicio",
-        servicio: servicioEncontrado,
-        rol_usuario: req.user.role,
+        mensaje: "Campos requeridos faltantes",
         camposFaltantes: camposFaltantes,
         camposRequeridos: camposRequeridos,
-        nota:
-          req.user.role === "cliente"
-            ? "Los clientes deben incluir información de pago"
-            : "Los administradores no requieren pago",
       });
     }
 
-    // Buscar el servicio en la base de datos por nombre
-    const servicio = await Servicio.findOne({
-      where: { nombre: servicioEncontrado },
+    console.log('✅ Todos los campos requeridos están presentes');
+
+    // Buscar el servicio en la base de datos
+    let servicio = await Servicio.findOne({
+      where: {
+        nombre: {
+          [Op.like]: `%${servicioEncontrado}%`
+        }
+      }
     });
 
+    // Si no se encuentra, intentar búsqueda exacta
     if (!servicio) {
-      return res.status(404).json({
-        mensaje: "Servicio no encontrado en la base de datos",
-        servicio: servicioEncontrado,
+      console.log('🔍 Intentando búsqueda exacta...');
+      servicio = await Servicio.findOne({
+        where: {
+          nombre: servicioEncontrado
+        }
       });
     }
 
-    // Mapear los campos específicos del servicio a los campos de la base de datos
-    const mapearCamposServicio = (body, nombreServicio, rolUsuario) => {
-      const mapeo = {
-        // Campos comunes que se mapean directamente
-        id_empresa: body.id_empresa || 1,
-        total_estimado: body.total_estimado || body.monto_pago || 0,
-        pais:
-          body.pais || body.pais_titular || body.ciudad_titular || "Colombia",
-        ciudad: body.ciudad || body.ciudad_titular || "Bogotá",
-        codigo_postal: body.codigo_postal || "110111",
-        estado: "Pendiente",
-        numero_expediente: body.numero_expediente || `EXP-${Date.now()}`,
-
-        // Campos de información personal/empresarial
-        tipodepersona: body.tipo_titular || body.tipodepersona,
-        tipodedocumento: body.tipo_titular === "Natural" ? "CC" : "NIT",
-        numerodedocumento:
-          body.documento_solicitante ||
-          body.documento_identidad_titular ||
-          body.documento_nit ||
-          body.documento_nit_titular,
-        nombrecompleto:
-          body.nombre_solicitante ||
-          body.nombre_completo_titular ||
-          body.nombre_opositor ||
-          body.nombre_titular_que_responde ||
-          body.titular,
-        correoelectronico:
-          body.correo_electronico ||
-          body.correo_titular ||
-          body.correo ||
-          body.correo_nuevo_titular,
-        telefono:
-          body.telefono || body.telefono_titular || body.telefono_nuevo_titular,
-        direccion:
-          body.direccion ||
-          body.direccion_titular ||
-          body.direccion_nuevo_titular,
-
-        // Campos empresariales
-        tipodeentidadrazonsocial:
-          body.tipodeentidadrazonsocial || body.razon_social,
-        nombredelaempresa: body.nombredelaempresa || body.nombre_razon_social,
-        nit:
-          body.nit ||
-          body.documento_nit ||
-          body.documento_nit_titular_actual ||
-          body.documento_nit_nuevo_titular ||
-          body.documento_nit_opositor,
-
-        // Campos de poder
-        poderdelrepresentanteautorizado:
-          body.poder || body.poderdelrepresentanteautorizado,
-        poderparaelregistrodelamarca:
-          body.poder || body.poderparaelregistrodelamarca,
-      };
-
-      return mapeo;
-    };
-
-    // Resolver id_cliente real (FK hacia clientes.id_cliente)
-    let idClienteReal = req.body.id_cliente;
-
-    if (!idClienteReal && req.body.id_usuario_cliente) {
-      const clienteByUsuario = await Cliente.findOne({ where: { id_usuario: req.body.id_usuario_cliente } });
-      if (!clienteByUsuario) {
-        return res.status(400).json({ mensaje: "El usuario indicado no tiene cliente asociado" });
+    // Si aún no se encuentra, crear el servicio
+    if (!servicio) {
+      console.log('🔧 Creando servicio en la base de datos...');
+      try {
+        servicio = await Servicio.create({
+          nombre: servicioEncontrado,
+          descripcion: `Servicio de ${servicioEncontrado}`,
+          precio_base: 100000.00, // Precio por defecto
+          estado: true
+        });
+        console.log('✅ Servicio creado:', servicio.nombre);
+      } catch (error) {
+        console.log('❌ Error al crear servicio:', error.message);
+        return res.status(500).json({
+          mensaje: "Error al crear servicio en la base de datos",
+          error: error.message,
+        });
       }
-      idClienteReal = clienteByUsuario.id_cliente;
+    } else {
+      console.log('✅ Servicio encontrado en BD:', servicio.nombre);
     }
 
-    if (!idClienteReal) {
-      const clienteActual = await Cliente.findOne({ where: { id_usuario: req.user.id_usuario } });
-      if (!clienteActual) {
-        return res.status(400).json({ mensaje: "Tu usuario no tiene cliente asociado" });
-      }
-      idClienteReal = clienteActual.id_cliente;
-    }
+    console.log('✅ Servicio ID:', servicio.id_servicio);
 
-    // Crear la orden de servicio
-    const datosOrdenServicio = {
-      id_cliente: idClienteReal,
-      id_servicio: servicio.id_servicio,
-      ...mapearCamposServicio(req.body, servicioEncontrado, req.user.role),
-    };
-
-    // Crear la orden en la base de datos
-    const nuevaOrden = await OrdenServicio.create(datosOrdenServicio);
-
-    // Responder con éxito
-    res.status(201).json({
-      mensaje: "Orden de servicio creada exitosamente",
-      orden: {
-        id_orden_servicio: nuevaOrden.id_orden_servicio,
-        numero_expediente: nuevaOrden.numero_expediente,
-        servicio: servicioEncontrado,
-        estado: nuevaOrden.estado,
-        fecha_creacion: nuevaOrden.fecha_creacion,
-        total_estimado: nuevaOrden.total_estimado,
-      },
-      informacion_pago: {
-        rol_usuario: req.user.role,
-        requiere_pago: req.user.role === "cliente",
-        metodo_pago: req.body.metodo_pago || null,
-        monto: req.body.monto_pago || nuevaOrden.total_estimado,
-      },
-      datosEnviados: req.body,
+    // Crear o encontrar el cliente primero
+    const userId = req.user.id || req.user.id_usuario || 1;
+    console.log('🔍 Debug - Usando userId:', userId);
+    
+    console.log('👤 Verificando/creando cliente...');
+    let cliente = await Cliente.findOne({
+      where: { id_usuario: userId }
     });
+
+    if (!cliente) {
+      console.log('🔧 Creando cliente...');
+      cliente = await Cliente.create({
+        id_usuario: userId,
+        marca: req.body.nombre_marca || 'Marca por defecto',
+        tipo_persona: req.body.tipo_titular === 'Persona Natural' ? 'Natural' : 'Jurídica',
+        estado: true
+      });
+      console.log('✅ Cliente creado con ID:', cliente.id_cliente);
+    } else {
+      console.log('✅ Cliente existente con ID:', cliente.id_cliente);
+    }
+    
+    // Verificar/crear empresa
+    console.log('🏢 Verificando/creando empresa...');
+    let empresa = await Empresa.findOne();
+    
+    if (!empresa) {
+      console.log('🔧 Creando empresa por defecto...');
+      empresa = await Empresa.create({
+        nit: 9001234561,
+        nombre: 'Registrack Colombia',
+        tipo_empresa: 'SAS'
+      });
+      console.log('✅ Empresa creada con ID:', empresa.id_empresa);
+    } else {
+      console.log('✅ Empresa existente con ID:', empresa.id_empresa);
+    }
+
+    const ordenData = {
+      id_cliente: cliente.id_cliente, // Usar el ID del cliente creado/encontrado
+      id_servicio: servicio.id_servicio, // Usar el ID correcto del servicio
+      id_empresa: empresa.id_empresa, // Usar el ID de la empresa creada/encontrada
+      total_estimado: servicio.precio_base || 100000.00,
+      pais: req.body.pais_titular || req.body.pais || "Colombia",
+      ciudad: req.body.ciudad_titular || req.body.ciudad || "Bogotá",
+      codigo_postal: req.body.codigo_postal || "110111",
+      estado: "Pendiente",
+      datos_solicitud: JSON.stringify(req.body), // Convertir a JSON string
+      fecha_solicitud: new Date(),
+    };
+    
+    console.log('🔍 Debug - ordenData:', ordenData);
+
+    console.log('📝 Creando orden de servicio...');
+    const nuevaOrden = await OrdenServicio.create(ordenData);
+    console.log('✅ Orden creada:', nuevaOrden.id_orden_servicio);
+
+    // Cliente ya fue creado/encontrado arriba
+
+    console.log('🎉 Solicitud creada exitosamente');
+    return res.status(201).json({
+      mensaje: "Solicitud creada exitosamente",
+      orden_id: nuevaOrden.id_orden_servicio,
+      servicio: servicioEncontrado,
+      estado: "Pendiente",
+      fecha_solicitud: nuevaOrden.fecha_solicitud,
+    });
+
   } catch (error) {
-    console.error("Error al crear orden de servicio:", error);
-
-    if (error.name === "SequelizeValidationError") {
-      return res.status(400).json({
-        mensaje: "Error de validación en los datos",
-        errores: error.errors.map((err) => ({
-          campo: err.path,
-          mensaje: err.message,
-        })),
-      });
-    }
-
-    if (error.name === "SequelizeUniqueConstraintError") {
-      return res.status(409).json({
-        mensaje: "Ya existe una orden con estos datos",
-        error: error.message,
-      });
-    }
-
-    res.status(500).json({
-      mensaje: "Error interno del servidor al crear la orden de servicio",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Error interno",
+    console.error('💥 Error en crearSolicitud:', error);
+    return res.status(500).json({
+      mensaje: "Error interno del servidor",
+      error: process.env.NODE_ENV === 'development' ? error.message : "Error interno",
     });
   }
 };
 
-// Listar todas las solicitudes
-// Si es cliente, solo ve las suyas
+// Exportar las demás funciones del controlador original
 export const listarSolicitudes = async (req, res) => {
   try {
     let solicitudes;
 
     if (req.user.role === "cliente") {
-      solicitudes = await solicitudesService.listarSolicitudesPorUsuario(
-        req.user.id
-      );
+      solicitudes = await solicitudesService.listarSolicitudesPorUsuario(req.user.id);
     } else {
       solicitudes = await solicitudesService.listarSolicitudes();
     }
@@ -362,7 +376,6 @@ export const listarSolicitudes = async (req, res) => {
   }
 };
 
-// Buscar solicitud (solo admin/empleado)
 export const buscarSolicitud = async (req, res) => {
   try {
     const { search } = req.query;
@@ -380,13 +393,11 @@ export const buscarSolicitud = async (req, res) => {
   }
 };
 
-// Ver detalle de una solicitud
 export const verDetalleSolicitud = async (req, res) => {
   try {
     const { id } = req.params;
     const solicitud = await solicitudesService.verDetalleSolicitud(id);
 
-    // 🔹 Cliente solo puede ver su propia solicitud
     if (req.user.role === "cliente" && solicitud.usuario_id !== req.user.id) {
       return res
         .status(403)
@@ -404,68 +415,32 @@ export const verDetalleSolicitud = async (req, res) => {
   }
 };
 
-// Anular solicitud (solo admin/empleado)
 export const anularSolicitud = async (req, res) => {
   try {
     const { id } = req.params;
-    const resultado = await solicitudesService.anularSolicitud(id);
-    res.json(resultado);
+    const solicitud = await solicitudesService.anularSolicitud(id);
+    res.json(solicitud);
   } catch (error) {
-    console.error("Error al anular la solicitud:", error);
+    console.error("Error al anular solicitud:", error);
     if (error.message.includes("Solicitud no encontrada")) {
       res.status(404).json({ mensaje: error.message });
     } else {
-      res.status(500).json({ mensaje: error.message });
+      res.status(500).json({ mensaje: "Error interno del servidor." });
     }
   }
 };
 
-// Crear solicitud básica (cliente/admin/empleado)
-export const crearSolicitudBasica = async (req, res) => {
-  try {
-    // Forzamos que el userId venga del token, no del body
-    const nuevaSolicitud = {
-      ...req.body,
-      usuario_id: req.user.id,
-    };
-
-    const resultado = await solicitudesService.crearSolicitud(nuevaSolicitud);
-    res.status(201).json(resultado);
-  } catch (error) {
-    console.error("Error al crear la solicitud:", error);
-    if (error.message.includes("es requerido")) {
-      res.status(400).json({ mensaje: error.message });
-    } else if (error.message.includes("Ya existe una solicitud")) {
-      res.status(409).json({ mensaje: error.message });
-    } else {
-      res
-        .status(500)
-        .json({ mensaje: "Error interno del servidor al crear la solicitud." });
-    }
-  }
-};
-
-// Editar solicitud (admin/empleado)
 export const editarSolicitud = async (req, res) => {
   try {
     const { id } = req.params;
-    const datosActualizados = req.body;
-
-    const resultado = await solicitudesService.editarSolicitud(
-      id,
-      datosActualizados
-    );
-    res.json(resultado);
+    const solicitud = await solicitudesService.editarSolicitud(id, req.body);
+    res.json(solicitud);
   } catch (error) {
-    console.error("Error al editar la solicitud:", error);
+    console.error("Error al editar solicitud:", error);
     if (error.message.includes("Solicitud no encontrada")) {
       res.status(404).json({ mensaje: error.message });
-    } else if (error.message.includes("Debe proporcionar al menos un campo")) {
-      res.status(400).json({ mensaje: error.message });
     } else {
-      res.status(500).json({
-        mensaje: "Error interno del servidor al editar la solicitud.",
-      });
+      res.status(500).json({ mensaje: "Error interno del servidor." });
     }
   }
 };

@@ -315,18 +315,27 @@ export const validateAllowedValues = (allowedValues) => {
  * Middleware para logging de respuestas
  */
 export const responseLogger = (req, res, next) => {
-  const originalJson = res.json;
+  // Verificar que req, res y next existen
+  if (!req || !res || !next) {
+    console.error('responseLogger: req, res o next es undefined');
+    return next();
+  }
   
-  res.json = function(data) {
-    // Log de la respuesta
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} - Status: ${res.statusCode}`);
+  // Verificar que res.json existe antes de intentar modificarlo
+  if (res.json && typeof res.json === 'function') {
+    const originalJson = res.json;
     
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Response:', JSON.stringify(data, null, 2));
-    }
-    
-    return originalJson.call(this, data);
-  };
+    res.json = function(data) {
+      // Log de la respuesta
+      console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} - Status: ${res.statusCode}`);
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Response:', JSON.stringify(data, null, 2));
+      }
+      
+      return originalJson.call(this, data);
+    };
+  }
   
   next();
 };

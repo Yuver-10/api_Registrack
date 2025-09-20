@@ -48,7 +48,7 @@ app.use(express.json());
 // Aplicar middlewares de respuesta estandarizada
 app.use(successResponse());
 app.use(errorResponse());
-app.use(responseLogger());
+app.use(responseLogger);
 
 // Usuarios: aquí suele estar el login/registro (NO necesita auth globalmente)
 app.use("/api/usuarios", UsuarioRoutes);
@@ -66,7 +66,7 @@ app.use("/api/gestion-roles", authMiddleware, RolesRoutes);
 app.use("/api/gestion-permisos", authMiddleware, PermisoRoutes);
 app.use("/api/gestion-privilegios", authMiddleware, PrivilegioRoutes);
 app.use("/api/gestion-citas", authMiddleware, CitasRoutes);
-app.use("/api/gestion-solicitudes", SolicitudesRoutes); // authMiddleware removido temporalmente
+app.use("/api/gestion-solicitudes", authMiddleware, SolicitudesRoutes);
 app.use("/api/gestion-solicitud-cita", authMiddleware, SolicitudCitaRoutes);
 app.use("/api/seguimiento", authMiddleware, SeguimientoRoutes);
 app.use("/api/gestion-clientes", authMiddleware, ClienteRoutes);

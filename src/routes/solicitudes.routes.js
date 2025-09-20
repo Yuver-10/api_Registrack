@@ -22,15 +22,13 @@ const router = Router();
 // Ruta para crear solicitud con validación dinámica según el servicio en la URL
 router.post(
   "/crear/:servicio",
-  // authMiddleware, // Temporalmente deshabilitado
-  // roleMiddleware(["cliente", "administrador", "empleado"]), // Temporalmente deshabilitado
+  roleMiddleware(["cliente", "administrador", "empleado"]),
   crearSolicitud
 );
 
 //  Cliente puede ver solo las suyas (endpoint general)
 router.get(
   "/mias",
-  authMiddleware,
   roleMiddleware(["cliente"]),
   listarSolicitudes
 );
@@ -43,7 +41,6 @@ router.get(
 //  Admin y empleado pueden gestionar todas
 router.get(
   "/",
-  authMiddleware,
   roleMiddleware(["administrador", "empleado"]),
   listarSolicitudes
 );
@@ -65,28 +62,24 @@ router.get(
 // );
 router.get(
   "/buscar",
-  authMiddleware,
   roleMiddleware(["administrador", "empleado"]),
   validateSearch,
   buscarSolicitud
 );
 router.get(
   "/:id",
-  authMiddleware,
   roleMiddleware(["administrador", "empleado"]),
   validateId,
   verDetalleSolicitud
 );
 router.put(
   "/anular/:id",
-  authMiddleware,
   roleMiddleware(["administrador", "empleado"]),
   validateId,
   anularSolicitud
 );
 router.put(
   "/editar/:id",
-  authMiddleware,
   roleMiddleware(["administrador", "empleado"]),
   validateId,
   validateEdicionSolicitud,
