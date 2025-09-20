@@ -15,7 +15,7 @@ router.post(
 );
 
 router.get(
-  "/:id/download",
+  "/:id/descargar",
   authMiddleware,
   roleMiddleware(["administrador", "empleado", "cliente"]),
   validateArchivoId,
