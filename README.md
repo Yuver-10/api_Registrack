@@ -230,9 +230,18 @@ npm test             # Ejecutar pruebas (placeholder)
 
 ### Scripts de base de datos
 ```bash
-npm run sync-db      # Sincronizar modelos con la BD
-npm run seed-roles   # Insertar roles iniciales (administrador, empleado, cliente)
-npm run create-admin # Crear usuario administrador por defecto
+npm run sync-db         # Sincronización normal (crear tablas si no existen)
+npm run sync-db:force   # Forzar recreación de todas las tablas (¡CUIDADO: elimina datos!)
+npm run sync-db:alter   # Modificar tablas existentes para coincidir con modelos
+npm run sync-db:help    # Mostrar ayuda del comando sync-db
+npm run seed-roles      # Insertar roles iniciales (administrador, empleado, cliente)
+npm run create-admin    # Crear usuario administrador por defecto
+```
+
+### Scripts de configuración completa
+```bash
+npm run setup           # Configuración inicial completa (sync + seed + admin)
+npm run reset-db        # Reset completo de BD (force + seed + admin)
 ```
 
 ### Credenciales iniciales (create-admin)
@@ -249,6 +258,88 @@ npm run create-admin # Crear usuario administrador por defecto
 - Los scripts `start` y `dev` ejecutan `server.js` en la raíz del proyecto
 - Los scripts de setup requieren que el cliente MySQL esté disponible en PATH
 - Configura la variable `PORT` en `.env` si deseas un puerto específico
+
+### 🔄 Sincronización de Base de Datos Mejorada
+
+El script `sync-db.js` ha sido completamente mejorado con las siguientes características:
+
+#### Opciones de sincronización:
+- **Normal** (`npm run sync-db`): Crea tablas si no existen (recomendado)
+- **Alter** (`npm run sync-db:alter`): Modifica tablas existentes para coincidir con modelos
+- **Force** (`npm run sync-db:force`): Recrea todas las tablas (⚠️ elimina datos existentes)
+
+#### Características del sync-db mejorado:
+- ✅ **Carga automática de todos los modelos** y sus asociaciones
+- ✅ **Manejo robusto de errores** con mensajes descriptivos
+- ✅ **Verificación de conexión** a la base de datos
+- ✅ **Información detallada** de tablas creadas y estadísticas
+- ✅ **Verificación de asociaciones** entre modelos
+- ✅ **Interfaz de línea de comandos** con opciones y ayuda
+- ✅ **Manejo de señales** de interrupción (Ctrl+C)
+- ✅ **Tiempo de ejecución** y métricas de rendimiento
+- ✅ **Próximos pasos sugeridos** después de la sincronización
+
+#### Uso del sync-db:
+```bash
+# Sincronización normal (recomendado para desarrollo)
+npm run sync-db
+
+# Ver ayuda completa
+npm run sync-db:help
+
+# Modificar tablas existentes (para actualizaciones)
+npm run sync-db:alter
+
+# Recrear completamente (¡CUIDADO: elimina datos!)
+npm run sync-db:force
+```
+
+#### Salida del sync-db mejorado:
+```
+📦 Cargando modelos...
+✅ Modelos cargados correctamente
+
+🔄 Iniciando sincronización de la base de datos...
+📊 Configuración: NORMAL (crear si no existen)
+🔌 Verificando conexión a la base de datos...
+✅ Conexión a la base de datos establecida
+📋 Base de datos: registrack_db
+🔄 Sincronizando modelos...
+
+✅ Base de datos sincronizada exitosamente
+⏱️  Tiempo de sincronización: 2.34s
+
+📋 Tablas en la base de datos:
+┌─────────────────────────────────┬─────────────┬─────────────┬─────────────┐
+│ Tabla                           │ Filas       │ Datos (KB)  │ Índices (KB)│
+├─────────────────────────────────┼─────────────┼─────────────┼─────────────┤
+│ usuarios                        │           0 │           0 │           0 │
+│ roles                           │           0 │           0 │           0 │
+│ servicios                       │           0 │           0 │           0 │
+└─────────────────────────────────┴─────────────┴─────────────┴─────────────┘
+
+🎯 Modelos sincronizados:
+  1. 👤 Usuarios y Roles
+  2. 🏢 Empresas y Clientes
+  3. 👨‍💼 Empleados
+  4. 🛍️ Servicios y Procesos
+  5. 📋 Órdenes de Servicio
+  6. 📅 Citas y Solicitudes
+  7. 📊 Seguimiento
+  8. 💰 Pagos
+  9. 📁 Archivos y Tipos
+  10. 🔐 Permisos y Privilegios
+
+🔗 Verificando asociaciones...
+✅ 25 asociaciones definidas correctamente
+
+📝 Próximos pasos recomendados:
+  1. Ejecutar: npm run seed-roles
+  2. Ejecutar: npm run create-admin
+  3. Iniciar servidor: npm run dev
+
+🎉 Proceso de sincronización completado exitosamente
+```
 
 ## 🔐 Autenticación y autorización
 
@@ -1205,14 +1296,87 @@ npm run create-admin # Crear usuario administrador
 #### Error de sincronización de modelos
 **Problema**: Error al sincronizar modelos con la base de datos
 **Solución**:
-- Ejecutar `npm run sync-db`
-- Revisar logs de Sequelize para conflictos de esquema
+- Ejecutar `npm run sync-db` para sincronización normal
+- Usar `npm run sync-db:alter` para modificar tablas existentes
+- Para problemas graves, usar `npm run sync-db:force` (⚠️ elimina datos)
+- Revisar logs detallados del sync-db mejorado
 - Verificar que la base de datos esté vacía o hacer backup
 - Comprobar permisos de usuario de base de datos
+- Usar `npm run sync-db:help` para ver opciones disponibles
 
 #### Puerto ocupado
 **Problema**: Error "EADDRINUSE" al iniciar el servidor
 **Solución**:
+
+### **Nuevo sistema de mensajes de error mejorado**
+
+La API ahora incluye un sistema completamente renovado de mensajes de respuesta que proporciona:
+
+#### **Características del nuevo sistema:**
+- ✅ **Códigos de error específicos** para cada tipo de problema
+- ✅ **Mensajes descriptivos** con información útil para el desarrollador
+- ✅ **Detalles adicionales** sobre qué causó el error
+- ✅ **Timestamps** para debugging y auditoría
+- ✅ **Sugerencias de solución** en muchos casos
+- ✅ **Respuestas estandarizadas** en formato JSON consistente
+- ✅ **Validaciones mejoradas** con mensajes específicos por campo
+- ✅ **Información de próximos pasos** en respuestas exitosas
+
+#### **Ejemplo de respuesta de error mejorada:**
+```json
+{
+  "success": false,
+  "error": {
+    "message": "El correo ya está registrado",
+    "code": "DUPLICATE_VALUE",
+    "details": {
+      "field": "correo",
+      "value": "test@example.com"
+    },
+    "timestamp": "2024-01-15T10:30:00.000Z"
+  }
+}
+```
+
+#### **Ejemplo de respuesta de éxito mejorada:**
+```json
+{
+  "success": true,
+  "message": "Usuario creado exitosamente",
+  "data": {
+    "usuario": {
+      "id_usuario": 1,
+      "nombre": "Juan",
+      "correo": "juan@example.com"
+    }
+  },
+  "meta": {
+    "timestamp": "2024-01-15T10:30:00.000Z",
+    "nextSteps": [
+      "Inicie sesión con sus credenciales",
+      "Complete su perfil de cliente"
+    ]
+  }
+}
+```
+
+#### **Códigos de error disponibles:**
+- `VALIDATION_ERROR`: Error de validación de datos
+- `REQUIRED_FIELD`: Campo requerido faltante
+- `DUPLICATE_VALUE`: Valor duplicado
+- `UNAUTHORIZED`: No autorizado
+- `NOT_FOUND`: Recurso no encontrado
+- `CONFLICT`: Conflicto de datos
+- `INTERNAL_ERROR`: Error interno del servidor
+- Y muchos más...
+
+#### **Pruebas del nuevo sistema:**
+Para probar las mejoras implementadas, ejecuta:
+```bash
+node test-messages.js
+```
+
+Este script demuestra todas las mejoras en los mensajes de la API.
 - Cambiar `PORT` en `.env` a otro puerto disponible
 - Liberar el puerto 3000 si está en uso
 - Verificar que no haya otra instancia del servidor ejecutándose
@@ -1242,12 +1406,23 @@ npm run create-admin # Crear usuario administrador
 
 ### Base de datos
 **¿Cómo reseteo la base de datos?**
-- Ejecuta `npm run sync-db` para sincronizar modelos
-- Usa `npm run seed-roles` para roles iniciales
-- Usa `npm run create-admin` para usuario admin
+- **Reset completo**: `npm run reset-db` (elimina datos y recrea todo)
+- **Sincronización normal**: `npm run sync-db` (crea tablas si no existen)
+- **Modificar tablas**: `npm run sync-db:alter` (actualiza estructura existente)
+- **Configuración inicial**: `npm run setup` (sync + seed + admin)
+
+**¿Cuál es la diferencia entre las opciones de sync-db?**
+- **Normal**: Crea tablas si no existen (recomendado para desarrollo)
+- **Alter**: Modifica tablas existentes para coincidir con modelos (para actualizaciones)
+- **Force**: Recrea todas las tablas (⚠️ elimina todos los datos existentes)
+
+**¿Cómo veo la ayuda del sync-db?**
+- Ejecuta `npm run sync-db:help` para ver todas las opciones disponibles
 
 **¿Dónde están los datos de ejemplo?**
 - En `database/seed-data.sql` (opcional)
+- Los roles se crean con `npm run seed-roles`
+- El usuario admin se crea con `npm run create-admin`
 
 ### Desarrollo
 **¿Dónde están definidas las rutas?**

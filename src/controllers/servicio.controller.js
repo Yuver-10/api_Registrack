@@ -1,13 +1,10 @@
 import servicioService from "../services/servicio.service.js";
-
-/**
- * Formato de respuesta estándar
- */
-const ok = (res, data, status = 200) =>
-  res.status(status).json({ success: true, data });
-
-const fail = (res, error, status = 500) =>
-  res.status(status).json({ success: false, error });
+import { 
+  SUCCESS_MESSAGES, 
+  ERROR_MESSAGES, 
+  VALIDATION_MESSAGES,
+  ERROR_CODES 
+} from "../constants/messages.js";
 
 /**
  * Obtener todos los servicios
@@ -15,10 +12,32 @@ const fail = (res, error, status = 500) =>
 export const getAllServicios = async (req, res) => {
   try {
     const result = await servicioService.getAllServicios();
-    return ok(res, result);
+    
+    res.status(200).json({
+      success: true,
+      message: SUCCESS_MESSAGES.SERVICES_FOUND,
+      data: {
+        servicios: result,
+        total: Array.isArray(result) ? result.length : 0
+      },
+      meta: {
+        timestamp: new Date().toISOString(),
+        filters: {
+          available: "Use query parameters para filtrar por nombre, precio, estado, etc."
+        }
+      }
+    });
   } catch (error) {
     console.error("Error al obtener servicios:", error);
-    return fail(res, "Error interno del servidor");
+    res.status(500).json({
+      success: false,
+      error: {
+        message: ERROR_MESSAGES.INTERNAL_ERROR,
+        code: ERROR_CODES.INTERNAL_ERROR,
+        details: process.env.NODE_ENV === "development" ? error.message : "Error al obtener servicios",
+        timestamp: new Date().toISOString()
+      }
+    });
   }
 };
 
@@ -30,17 +49,51 @@ export const getServicioById = async (req, res) => {
     const { idServicio } = req.params;
 
     if (!idServicio || isNaN(Number(idServicio))) {
-      return fail(res, "El ID proporcionado no es válido", 400);
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: VALIDATION_MESSAGES.SERVICE.INVALID_SERVICE_ID,
+          code: ERROR_CODES.INVALID_ID,
+          details: { field: "idServicio", value: idServicio },
+          timestamp: new Date().toISOString()
+        }
+      });
     }
 
     const result = await servicioService.getServicioById(idServicio);
-    return ok(res, result);
+    
+    res.status(200).json({
+      success: true,
+      message: SUCCESS_MESSAGES.SERVICE_FOUND,
+      data: {
+        servicio: result
+      },
+      meta: {
+        timestamp: new Date().toISOString()
+      }
+    });
   } catch (error) {
     console.error("Error al obtener servicio:", error);
     if (error.name === "NotFoundError") {
-      return fail(res, error.message, 404);
+      return res.status(404).json({
+        success: false,
+        error: {
+          message: VALIDATION_MESSAGES.SERVICE.SERVICE_NOT_FOUND,
+          code: ERROR_CODES.SERVICE_NOT_FOUND,
+          details: { id: idServicio },
+          timestamp: new Date().toISOString()
+        }
+      });
     }
-    return fail(res, "Error interno del servidor");
+    res.status(500).json({
+      success: false,
+      error: {
+        message: ERROR_MESSAGES.INTERNAL_ERROR,
+        code: ERROR_CODES.INTERNAL_ERROR,
+        details: process.env.NODE_ENV === "development" ? error.message : "Error al obtener servicio",
+        timestamp: new Date().toISOString()
+      }
+    });
   }
 };
 

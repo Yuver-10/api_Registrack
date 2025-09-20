@@ -8,8 +8,13 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "sync-db": "node sync-db.js",
+    "sync-db:force": "node sync-db.js --force",
+    "sync-db:alter": "node sync-db.js --alter",
+    "sync-db:help": "node sync-db.js --help",
     "seed-roles": "node seed-roles.js",
-    "create-admin": "node create-admin.js"
+    "create-admin": "node create-admin.js",
+    "setup": "npm run sync-db && npm run seed-roles && npm run create-admin",
+    "reset-db": "npm run sync-db:force && npm run seed-roles && npm run create-admin"
   },
   "keywords": [],
   "author": "",

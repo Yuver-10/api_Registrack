@@ -2,6 +2,12 @@ import { Op } from "sequelize";
 import Cita from "../models/citas.js";
 import User from "../models/user.js";
 import ExcelJS from "exceljs";
+import {
+  SUCCESS_MESSAGES,
+  ERROR_MESSAGES,
+  VALIDATION_MESSAGES,
+  ERROR_CODES
+} from "../constants/messages.js";
 
 export const getCitas = async (req, res) => {
     try {
@@ -19,9 +25,52 @@ export const getCitas = async (req, res) => {
                 }
             ]
         });
-        res.json(citas);
+        
+        res.status(200).json({
+            success: true,
+            message: SUCCESS_MESSAGES.APPOINTMENTS_FOUND,
+            data: {
+                citas: citas.map(cita => ({
+                    id_cita: cita.id_cita,
+                    fecha: cita.fecha,
+                    hora_inicio: cita.hora_inicio,
+                    hora_fin: cita.hora_fin,
+                    tipo: cita.tipo,
+                    modalidad: cita.modalidad,
+                    estado: cita.estado,
+                    observacion: cita.observacion,
+                    cliente: cita.Cliente ? {
+                        id_usuario: cita.Cliente.id_usuario,
+                        documento: cita.Cliente.documento,
+                        nombre: cita.Cliente.nombre,
+                        apellido: cita.Cliente.apellido
+                    } : null,
+                    empleado: cita.Empleado ? {
+                        id_usuario: cita.Empleado.id_usuario,
+                        nombre: cita.Empleado.nombre,
+                        apellido: cita.Empleado.apellido
+                    } : null
+                })),
+                total: citas.length
+            },
+            meta: {
+                timestamp: new Date().toISOString(),
+                filters: {
+                    available: "Use query parameters para filtrar por fecha, estado, tipo, etc."
+                }
+            }
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error("Error al obtener citas:", error);
+        res.status(500).json({
+            success: false,
+            error: {
+                message: ERROR_MESSAGES.INTERNAL_ERROR,
+                code: ERROR_CODES.INTERNAL_ERROR,
+                details: process.env.NODE_ENV === "development" ? error.message : "Error al obtener citas",
+                timestamp: new Date().toISOString()
+            }
+        });
     }
 };
 
@@ -123,7 +172,32 @@ export const createCita = async (req, res) => {
             id_empleado,
             observacion
         });
-        res.status(201).json(newCita);
+        res.status(201).json({
+            success: true,
+            message: SUCCESS_MESSAGES.APPOINTMENT_CREATED,
+            data: {
+                cita: {
+                    id_cita: newCita.id_cita,
+                    fecha: newCita.fecha,
+                    hora_inicio: newCita.hora_inicio,
+                    hora_fin: newCita.hora_fin,
+                    tipo: newCita.tipo,
+                    modalidad: newCita.modalidad,
+                    estado: newCita.estado,
+                    observacion: newCita.observacion,
+                    id_cliente: newCita.id_cliente,
+                    id_empleado: newCita.id_empleado
+                }
+            },
+            meta: {
+                timestamp: new Date().toISOString(),
+                nextSteps: [
+                    "La cita ha sido programada exitosamente",
+                    "Se enviará una confirmación por correo electrónico",
+                    "Puede reprogramar o cancelar la cita si es necesario"
+                ]
+            }
+        });
     } catch (error) {
         if (error.name === 'SequelizeValidationError') {
             const messages = error.errors.map(err => {
@@ -224,7 +298,30 @@ export const reprogramarCita = async (req, res) => {
         cita.estado = 'Reprogramada';
         await cita.save();
 
-        res.json({ message: "Cita reprogramada exitosamente.", cita });
+        res.status(200).json({
+            success: true,
+            message: SUCCESS_MESSAGES.APPOINTMENT_RESCHEDULED,
+            data: {
+                cita: {
+                    id_cita: cita.id_cita,
+                    fecha: cita.fecha,
+                    hora_inicio: cita.hora_inicio,
+                    hora_fin: cita.hora_fin,
+                    tipo: cita.tipo,
+                    modalidad: cita.modalidad,
+                    estado: cita.estado,
+                    observacion: cita.observacion
+                }
+            },
+            meta: {
+                timestamp: new Date().toISOString(),
+                nextSteps: [
+                    "La cita ha sido reprogramada exitosamente",
+                    "Se enviará una notificación al cliente",
+                    "Verifique la nueva fecha y hora"
+                ]
+            }
+        });
 
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -255,7 +352,30 @@ export const anularCita = async (req, res) => {
         cita.observacion = observacion;
         await cita.save();
 
-        res.json({ message: "Cita anulada exitosamente.", cita });
+        res.status(200).json({
+            success: true,
+            message: SUCCESS_MESSAGES.APPOINTMENT_CANCELLED,
+            data: {
+                cita: {
+                    id_cita: cita.id_cita,
+                    fecha: cita.fecha,
+                    hora_inicio: cita.hora_inicio,
+                    hora_fin: cita.hora_fin,
+                    tipo: cita.tipo,
+                    modalidad: cita.modalidad,
+                    estado: cita.estado,
+                    observacion: cita.observacion
+                }
+            },
+            meta: {
+                timestamp: new Date().toISOString(),
+                nextSteps: [
+                    "La cita ha sido anulada exitosamente",
+                    "Se enviará una notificación al cliente",
+                    "El horario queda disponible para nuevas citas"
+                ]
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -323,4 +443,105 @@ export const descargarReporteCitas = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: "Error al generar el reporte de citas", error: error.message });
     }
+};
+
+// Middleware de validación para crear cita
+export const validateCreateCita = (req, res, next) => {
+    const { fecha, hora_inicio, hora_fin, tipo, modalidad, id_cliente, id_empleado } = req.body;
+    
+    const requiredFields = { fecha, hora_inicio, hora_fin, tipo, modalidad, id_cliente, id_empleado };
+    const missingFields = Object.keys(requiredFields).filter(field => !requiredFields[field]);
+    
+    if (missingFields.length > 0) {
+        return res.status(400).json({
+            success: false,
+            error: {
+                message: `Los campos son obligatorios: ${missingFields.join(', ')}`,
+                code: 'REQUIRED_FIELD',
+                details: { missingFields },
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+    
+    // Validar formato de fecha
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+        return res.status(400).json({
+            success: false,
+            error: {
+                message: 'El formato de fecha debe ser YYYY-MM-DD',
+                code: 'INVALID_DATE_FORMAT',
+                details: { field: 'fecha', value: fecha },
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+    
+    // Validar formato de hora
+    if (!/^\d{2}:\d{2}:\d{2}$/.test(hora_inicio) || !/^\d{2}:\d{2}:\d{2}$/.test(hora_fin)) {
+        return res.status(400).json({
+            success: false,
+            error: {
+                message: 'El formato de hora debe ser HH:MM:SS',
+                code: 'INVALID_TIME_FORMAT',
+                details: { field: 'hora_inicio/hora_fin' },
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+    
+    // Validar tipos permitidos
+    const tiposPermitidos = ['Consulta', 'Seguimiento', 'Reunión', 'Presentación'];
+    if (!tiposPermitidos.includes(tipo)) {
+        return res.status(400).json({
+            success: false,
+            error: {
+                message: `Tipo de cita no válido. Tipos permitidos: ${tiposPermitidos.join(', ')}`,
+                code: 'INVALID_CHOICE',
+                details: { field: 'tipo', value: tipo, allowed: tiposPermitidos },
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+    
+    // Validar modalidades permitidas
+    const modalidadesPermitidas = ['Presencial', 'Virtual', 'Híbrida'];
+    if (!modalidadesPermitidas.includes(modalidad)) {
+        return res.status(400).json({
+            success: false,
+            error: {
+                message: `Modalidad no válida. Modalidades permitidas: ${modalidadesPermitidas.join(', ')}`,
+                code: 'INVALID_CHOICE',
+                details: { field: 'modalidad', value: modalidad, allowed: modalidadesPermitidas },
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+    
+    // Validar IDs numéricos
+    if (isNaN(parseInt(id_cliente)) || parseInt(id_cliente) <= 0) {
+        return res.status(400).json({
+            success: false,
+            error: {
+                message: 'El ID del cliente debe ser un número válido',
+                code: 'INVALID_ID',
+                details: { field: 'id_cliente', value: id_cliente },
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+    
+    if (isNaN(parseInt(id_empleado)) || parseInt(id_empleado) <= 0) {
+        return res.status(400).json({
+            success: false,
+            error: {
+                message: 'El ID del empleado debe ser un número válido',
+                code: 'INVALID_ID',
+                details: { field: 'id_empleado', value: id_empleado },
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+    
+    next();
 };

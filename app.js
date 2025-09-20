@@ -26,6 +26,14 @@ import {
   notFoundHandler,
 } from "./src/middlewares/error.middleware.js";
 
+// Importar nuevos middlewares de respuesta
+import { 
+  successResponse, 
+  errorResponse, 
+  responseLogger,
+  sequelizeErrorHandler 
+} from "./src/middlewares/response.middleware.js";
+
 import "./src/config/db.js";
 
 //  Importaremos los middlewares de seguridad
@@ -37,6 +45,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Aplicar middlewares de respuesta estandarizada
+app.use(successResponse());
+app.use(errorResponse());
+app.use(responseLogger());
+
 // Usuarios: aquí suele estar el login/registro (NO necesita auth globalmente)
 app.use("/api/usuarios", UsuarioRoutes);
 
@@ -47,25 +60,28 @@ app.use("/api/servicios", ServicioRoutes);
 app.use("/api/formularios-dinamicos", FormularioDinamicoRoutes);
 
 // Rutas protegidas
-app.use("/api/empleados", authMiddleware, EmpleadoRoutes);
-app.use("/api/pagos", authMiddleware, pagoRoutes);
-app.use("/api/roles", authMiddleware, RolesRoutes);
-app.use("/api/permisos", authMiddleware, PermisoRoutes);
-app.use("/api/privilegios", authMiddleware, PrivilegioRoutes);
-app.use("/api/citas", authMiddleware, CitasRoutes);
-app.use("/api/solicitudes", SolicitudesRoutes); // authMiddleware removido temporalmente
-app.use("/api/solicitud-cita", authMiddleware, SolicitudCitaRoutes);
+app.use("/api/gestion-empleados", authMiddleware, EmpleadoRoutes);
+app.use("/api/gestion-pagos", authMiddleware, pagoRoutes);
+app.use("/api/gestion-roles", authMiddleware, RolesRoutes);
+app.use("/api/gestion-permisos", authMiddleware, PermisoRoutes);
+app.use("/api/gestion-privilegios", authMiddleware, PrivilegioRoutes);
+app.use("/api/gestion-citas", authMiddleware, CitasRoutes);
+app.use("/api/gestion-solicitudes", SolicitudesRoutes); // authMiddleware removido temporalmente
+app.use("/api/gestion-solicitud-cita", authMiddleware, SolicitudCitaRoutes);
 app.use("/api/seguimiento", authMiddleware, SeguimientoRoutes);
-app.use("/api/clientes", authMiddleware, ClienteRoutes);
-app.use("/api/empresas", authMiddleware, EmpresaRoutes);
-app.use("/api/tipo-archivos", TipoArchivoRoutes);
-app.use("/api/archivos", ArchivoRoutes);
+app.use("/api/gestion-clientes", authMiddleware, ClienteRoutes);
+app.use("/api/gestion-empresas", authMiddleware, EmpresaRoutes);
+app.use("/api/gestion-tipo-archivos", TipoArchivoRoutes);
+app.use("/api/gestion-archivos", ArchivoRoutes);
 app.use("/api/detalles-orden", DetalleOrdenRoutes);
 app.use("/api/detalles-procesos", DetalleProcesoRoutes);
-app.use("/api/servicios-procesos", ServicioProcesoRoutes);
+app.use("/api/gestion-servicios-procesos", ServicioProcesoRoutes);
 
 // Middleware para manejar rutas no encontradas (debe ir antes del error handler)
 app.use(notFoundHandler);
+
+// Middleware para manejo de errores de Sequelize (antes del error handler general)
+app.use(sequelizeErrorHandler);
 
 // Middleware para manejo de errores (debe ir al final)
 app.use(errorHandler);
